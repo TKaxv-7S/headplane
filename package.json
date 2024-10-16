@@ -4,7 +4,8 @@
 	"sideEffects": false,
 	"type": "module",
 	"scripts": {
-		"build": "remix vite:build",
+		"prepareDev": "node scripts/copyMonacoToPublic.js",
+		"build": "node scripts/copyMonacoToPublic.js && remix vite:build",
 		"dev": "remix vite:dev",
 		"lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
 		"start": "remix-serve ./build/server/index.js",
@@ -36,6 +37,9 @@
 		"usehooks-ts": "^3.1.0",
 		"yaml": "^2.4.5",
 		"zod": "^3.23.8"
+	},
+	"peerDependencies": {
+		"monaco-editor": "0.44.0"
 	},
 	"devDependencies": {
 		"@remix-run/dev": "^2.10.2",
