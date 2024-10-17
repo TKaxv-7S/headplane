@@ -1,8 +1,12 @@
+import { loader } from '@monaco-editor/react'
 import { vitePlugin as remix } from '@remix-run/dev'
 import { installGlobals } from '@remix-run/node'
 import { defineConfig } from 'vite'
 import babel from 'vite-plugin-babel'
 import tsconfigPaths from 'vite-tsconfig-paths'
+
+loader.config({ paths: { vs: 'monaco-assets/vs' } })
+loader.config({ 'vs/nls': { availableLanguages: { '*': 'de' } } })
 
 installGlobals()
 
