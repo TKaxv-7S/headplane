@@ -1,9 +1,12 @@
-import Editor, { DiffEditor, Monaco } from '@monaco-editor/react'
+import Editor, { DiffEditor, loader, Monaco } from '@monaco-editor/react'
 import { useEffect, useState } from 'react'
 import { ClientOnly } from 'remix-utils/client-only'
 
 import Fallback from '~/routes/_data.acls._index/fallback'
 import { cn } from '~/utils/cn'
+
+loader.config({ paths: { vs: 'monaco-assets/vs' } })
+loader.config({ 'vs/nls': { availableLanguages: { '*': 'de' } } })
 
 interface Props {
 	variant: 'edit' | 'diff'
