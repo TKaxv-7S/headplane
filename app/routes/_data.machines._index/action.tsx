@@ -46,6 +46,36 @@ export async function menuAction(request: ActionFunctionArgs['request']) {
 			return json({ message: 'Machine renamed' })
 		}
 
+		case 'changeipv4': {
+			if (!data.has('ipv4')) {
+				return json({ message: 'No ipv4 provided' }, {
+					status: 400,
+				})
+			}
+
+			const ipv4 = String(data.get('ipv4'))
+
+			await post(`v1/node/${id}/changeipv4addresses`, session.get('hsApiKey')!, {
+				new_ip_addresses: ipv4,
+			})
+			return json({ message: 'Machine ipv4 addresses changed' })
+		}
+
+		case 'changeipv6': {
+			if (!data.has('ipv6')) {
+				return json({ message: 'No ipv6 provided' }, {
+					status: 400,
+				})
+			}
+
+			const ipv6 = String(data.get('ipv6'))
+
+			await post(`v1/node/${id}/changeipv6addresses`, session.get('hsApiKey')!, {
+				new_ip_addresses: ipv6,
+			})
+			return json({ message: 'Machine ipv6 addresses changed' })
+		}
+
 		case 'routes': {
 			if (!data.has('route') || !data.has('enabled')) {
 				return json({ message: 'No route or enabled provided' }, {

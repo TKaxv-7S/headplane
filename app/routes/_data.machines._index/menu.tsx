@@ -5,6 +5,8 @@ import MenuComponent from '~/components/Menu'
 import { Machine, Route, User } from '~/types'
 import { cn } from '~/utils/cn'
 
+import Changeipv4 from './dialogs/changeipv4'
+import Changeipv6 from './dialogs/changeipv6'
 import Delete from './dialogs/delete'
 import Expire from './dialogs/expire'
 import Move from './dialogs/move'
@@ -21,6 +23,8 @@ interface MenuProps {
 
 export default function Menu({ machine, routes, magic, users }: MenuProps) {
 	const renameState = useState(false)
+	const changeipv4State = useState(false)
+	const changeipv6State = useState(false)
 	const expireState = useState(false)
 	const removeState = useState(false)
 	const routesState = useState(false)
@@ -39,6 +43,14 @@ export default function Menu({ machine, routes, magic, users }: MenuProps) {
 				machine={machine}
 				state={renameState}
 				magic={magic}
+			/>
+			<Changeipv4
+				machine={machine}
+				state={changeipv4State}
+			/>
+			<Changeipv6
+				machine={machine}
+				state={changeipv6State}
 			/>
 			<Delete
 				machine={machine}
@@ -81,6 +93,12 @@ export default function Menu({ machine, routes, magic, users }: MenuProps) {
 				<MenuComponent.Items>
 					<MenuComponent.ItemButton control={renameState}>
 						Edit machine name
+					</MenuComponent.ItemButton>
+					<MenuComponent.ItemButton control={changeipv4State}>
+						Edit machine ipv4
+					</MenuComponent.ItemButton>
+					<MenuComponent.ItemButton control={changeipv6State}>
+						Edit machine ipv6
 					</MenuComponent.ItemButton>
 					<MenuComponent.ItemButton control={routesState}>
 						Edit route settings
