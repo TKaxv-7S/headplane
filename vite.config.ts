@@ -6,16 +6,16 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 
 installGlobals()
 
-const prefix = process.env.__INTERNAL_PREFIX || '/admin/'
-if (!prefix.endsWith('/')) {
-	throw new Error('Prefix must end with a slash')
+const prefix = process.env.__INTERNAL_PREFIX || '/admin'
+if (prefix.endsWith('/')) {
+	throw new Error('Prefix must not end with a slash')
 }
 
 export default defineConfig(({ isSsrBuild }) => {
 	// If we have the Headplane entry we build it as a single
 	// server.mjs file that is built for production server bundle
 	// We know the remix invoked command is vite:build
-	if (!process.argv.includes('vite:build')) {
+	if (!process.argv.includes('vite:build') && !process.argv.includes('vite:dev')) {
 		return {
 			build: {
 				minify: false,
@@ -43,11 +43,11 @@ export default defineConfig(({ isSsrBuild }) => {
 	}
 
 	return ({
-		base: prefix,
+		base: `${prefix}/`,
 		build: isSsrBuild ? { target: 'ES2022' } : {},
 		plugins: [
 			remix({
-				basename: prefix,
+				basename: `${prefix}/`,
 			}),
 			tsconfigPaths(),
 			babel({
