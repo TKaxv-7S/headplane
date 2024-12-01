@@ -15,6 +15,7 @@ import log from '~/utils/log'
 export interface HeadplaneContext {
 	debug: boolean
 	headscaleUrl: string
+	headscalePublicUrl?: string
 	cookieSecret: string
 	integration: IntegrationFactory | undefined
 
@@ -28,6 +29,7 @@ export interface HeadplaneContext {
 		client: string
 		secret: string
 		rootKey: string
+		method: string
 		disableKeyLogin: boolean
 	}
 }
@@ -55,12 +57,18 @@ export async function loadContext(): Promise<HeadplaneContext> {
 	const { config, contextData } = await checkConfig(path)
 
 	let headscaleUrl = process.env.HEADSCALE_URL
+	let headscalePublicUrl = process.env.HEADSCALE_PUBLIC_URL
+
 	if (!headscaleUrl && !config) {
 		throw new Error('HEADSCALE_URL not set')
 	}
 
 	if (config) {
 		headscaleUrl = headscaleUrl ?? config.server_url
+		if (!headscalePublicUrl) {
+			// Fallback to the config value if the env var is not set
+			headscalePublicUrl = config.public_url
+		}
 	}
 
 	if (!headscaleUrl) {
@@ -75,6 +83,7 @@ export async function loadContext(): Promise<HeadplaneContext> {
 	context = {
 		debug,
 		headscaleUrl,
+		headscalePublicUrl,
 		cookieSecret,
 		integration: await loadIntegration(),
 		config: contextData,
@@ -83,6 +92,10 @@ export async function loadContext(): Promise<HeadplaneContext> {
 
 	log.info('CTXT', 'Starting Headplane with Context')
 	log.info('CTXT', 'HEADSCALE_URL: %s', headscaleUrl)
+	if (headscalePublicUrl) {
+		log.info('CTXT', 'HEADSCALE_PUBLIC_URL: %s', headscalePublicUrl)
+	}
+
 	log.info('CTXT', 'Integration: %s', context.integration?.name ?? 'None')
 	log.info('CTXT', 'Config: %s', contextData.read
 		? `Found ${contextData.write ? '' : '(Read Only)'}`
@@ -143,6 +156,7 @@ async function checkOidc(config?: HeadscaleConfig) {
 	let issuer = process.env.OIDC_ISSUER
 	let client = process.env.OIDC_CLIENT_ID
 	let secret = process.env.OIDC_CLIENT_SECRET
+	let method = process.env.OIDC_CLIENT_SECRET_METHOD ?? 'client_secret_basic'
 
 	log.debug('CTXT', 'Checking OIDC environment variables')
 	log.debug('CTXT', 'Issuer: %s', issuer)
@@ -161,6 +175,7 @@ async function checkOidc(config?: HeadscaleConfig) {
 			issuer,
 			client,
 			secret,
+			method,
 			rootKey,
 			disableKeyLogin,
 		}
@@ -204,6 +219,7 @@ async function checkOidc(config?: HeadscaleConfig) {
 		client,
 		secret,
 		rootKey,
+		method,
 		disableKeyLogin,
 	}
 }
