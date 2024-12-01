@@ -3,6 +3,7 @@ import { ActionFunctionArgs, json } from '@remix-run/node'
 
 import { del, post } from '~/utils/headscale'
 import { getSession } from '~/utils/sessions'
+import log from '~/utils/log'
 
 export async function menuAction(request: ActionFunctionArgs['request']) {
 	const session = await getSession(request.headers.get('Cookie'))
@@ -91,6 +92,24 @@ export async function menuAction(request: ActionFunctionArgs['request']) {
 			return json({ message: 'Route updated' })
 		}
 
+		case 'exit-node': {
+			if (!data.has('routes') || !data.has('enabled')) {
+				return json({ message: 'No route or enabled provided' }, {
+					status: 400,
+				})
+			}
+
+			const routes = data.get('routes')?.toString().split(',') ?? []
+			const enabled = data.get('enabled') === 'true'
+			const postfix = enabled ? 'enable' : 'disable'
+
+			await Promise.all(routes.map(async (route) => {
+				await post(`v1/routes/${route}/${postfix}`, session.get('hsApiKey')!)
+			}))
+
+			return json({ message: 'Exit node updated' })
+		}
+
 		case 'move': {
 			if (!data.has('to')) {
 				return json({ message: 'No destination provided' }, {
@@ -112,7 +131,9 @@ export async function menuAction(request: ActionFunctionArgs['request']) {
 
 		case 'tags': {
 			const tags = data.get('tags')?.toString()
-				.split(',') ?? []
+				.split(',')
+				.filter((tag) => tag.trim() !== '')
+					?? []
 
 			try {
 				await post(`v1/node/${id}/tags`, session.get('hsApiKey')!, {
@@ -120,7 +141,8 @@ export async function menuAction(request: ActionFunctionArgs['request']) {
 				})
 
 				return json({ message: 'Tags updated' })
-			} catch {
+			} catch (error) {
+				log.debug('APIC', 'Failed to update tags: %s', error)
 				return json({ message: 'Failed to update tags' }, {
 					status: 500,
 				})

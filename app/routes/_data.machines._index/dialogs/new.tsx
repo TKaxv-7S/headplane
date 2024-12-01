@@ -18,7 +18,7 @@ export interface NewProps {
 }
 
 export default function New(data: NewProps) {
-	const fetcher = useFetcher()
+	const fetcher = useFetcher<{ success?: boolean }>()
 	const mkeyState = useState(false)
 	const [mkey, setMkey] = useState('')
 	const [user, setUser] = useState('')
@@ -50,10 +50,8 @@ export default function New(data: NewProps) {
 							<Dialog.Text className='mb-4'>
 								The machine key is given when you run
 								{' '}
-								<Code>
+								<Code isCopyable>
 									tailscale up --login-server=
-								</Code>
-								<Code>
 									{data.server}
 								</Code>
 								{' '}

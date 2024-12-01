@@ -1,5 +1,5 @@
 import { KebabHorizontalIcon } from '@primer/octicons-react'
-import { useState } from 'react'
+import { ReactNode, useState } from 'react'
 
 import MenuComponent from '~/components/Menu'
 import { Machine, Route, User } from '~/types'
@@ -19,9 +19,10 @@ interface MenuProps {
 	routes: Route[]
 	users: User[]
 	magic?: string
+	buttonChild?: ReactNode
 }
 
-export default function Menu({ machine, routes, magic, users }: MenuProps) {
+export default function Menu({ machine, routes, magic, users, buttonChild }: MenuProps) {
 	const renameState = useState(false)
 	const changeipv4State = useState(false)
 	const changeipv6State = useState(false)
@@ -81,15 +82,17 @@ export default function Menu({ machine, routes, magic, users }: MenuProps) {
 			/>
 
 			<MenuComponent>
-				<MenuComponent.Button
-					className={cn(
-						'flex items-center justify-center',
-						'border border-transparent rounded-lg py-0.5 w-10',
-						'group-hover:border-gray-200 dark:group-hover:border-zinc-700',
-					)}
-				>
-					<KebabHorizontalIcon className="w-5" />
-				</MenuComponent.Button>
+				{buttonChild ?? (
+					<MenuComponent.Button
+						className={cn(
+							'flex items-center justify-center',
+							'border border-transparent rounded-lg py-0.5 w-10',
+							'group-hover:border-gray-200 dark:group-hover:border-zinc-700',
+						)}
+					>
+						<KebabHorizontalIcon className="w-5" />
+					</MenuComponent.Button>
+				)}
 				<MenuComponent.Items>
 					<MenuComponent.ItemButton control={renameState}>
 						Edit machine name
