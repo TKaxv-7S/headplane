@@ -1,143 +1,186 @@
-/* eslint-disable unicorn/no-keyword-prefix */
-import { type Dispatch, type ReactNode, type SetStateAction } from 'react'
+import React, { cloneElement, useRef } from 'react';
 import {
-	Button as AriaButton,
-	Dialog as AriaDialog,
-	DialogTrigger,
-	Heading as AriaHeading,
-	Modal,
-	ModalOverlay
-} from 'react-aria-components'
+	type AriaDialogProps,
+	type AriaModalOverlayProps,
+	Overlay,
+	useDialog,
+	useModalOverlay,
+	useOverlayTrigger,
+} from 'react-aria';
+import { Form, type HTMLFormMethod } from 'react-router';
+import {
+	type OverlayTriggerProps,
+	type OverlayTriggerState,
+	useOverlayTriggerState,
+} from 'react-stately';
+import Button, { ButtonProps } from '~/components/Button';
+import Card from '~/components/Card';
+import IconButton, { IconButtonProps } from '~/components/IconButton';
+import Text from '~/components/Text';
+import Title from '~/components/Title';
+import { cn } from '~/utils/cn';
 
-import { cn } from '~/utils/cn'
-
-type ButtonProperties = Parameters<typeof AriaButton>[0] & {
-	readonly control?: [boolean, Dispatch<SetStateAction<boolean>>];
+export interface DialogProps extends OverlayTriggerProps {
+	children:
+		| [
+				React.ReactElement<ButtonProps> | React.ReactElement<IconButtonProps>,
+				React.ReactElement<DialogPanelProps>,
+		  ]
+		| React.ReactElement<DialogPanelProps>;
 }
 
-function Button(properties: ButtonProperties) {
-	return (
-		<AriaButton
-			{...properties}
-			aria-label='Dialog'
-			className={cn(
-				'w-fit text-sm rounded-lg px-4 py-2',
-				'bg-main-700 dark:bg-main-800 text-white',
-				'hover:bg-main-800 dark:hover:bg-main-700',
-				properties.isDisabled && 'opacity-50 cursor-not-allowed',
-				properties.className
-			)}
-			// If control is passed, set the state value
-			onPress={properties.control ? () => {
-				properties.control?.[1](true)
-			} : undefined}
-		/>
-	)
-}
+function Dialog(props: DialogProps) {
+	const state = useOverlayTriggerState(props);
+	const { triggerProps, overlayProps } = useOverlayTrigger(
+		{
+			type: 'dialog',
+		},
+		state,
+	);
 
-type ActionProperties = Parameters<typeof AriaButton>[0] & {
-	readonly variant: 'cancel' | 'confirm';
-}
-
-function Action(properties: ActionProperties) {
-	return (
-		<AriaButton
-			{...properties}
-			type={properties.variant === 'confirm' ? 'submit' : 'button'}
-			className={cn(
-				'px-4 py-2 rounded-lg',
-				properties.isDisabled && 'opacity-50 cursor-not-allowed',
-				properties.variant === 'cancel'
-					? 'text-ui-700 dark:text-ui-300'
-					: 'text-ui-300 dark:text-ui-300',
-				properties.variant === 'confirm'
-					? 'bg-main-700 dark:bg-main-700 pressed:bg-main-800 dark:pressed:bg-main-800'
-					: 'bg-ui-200 dark:bg-ui-800 pressed:bg-ui-300 dark:pressed:bg-ui-700',
-				properties.className
-			)}
-		/>
-	)
-}
-
-function Title(properties: Parameters<typeof AriaHeading>[0]) {
-	return (
-		<AriaHeading
-			{...properties}
-			slot='title'
-			className={cn(
-				'text-lg font-semibold leading-6 mb-5',
-				properties.className
-			)}
-		/>
-	)
-}
-
-function Text(properties: React.HTMLProps<HTMLParagraphElement>) {
-	return (
-		<p
-			{...properties}
-			className={cn(
-				'text-base leading-6 my-0',
-				properties.className
-			)}
-		/>
-	)
-}
-
-type PanelProperties = {
-	readonly children: (close: () => void) => ReactNode;
-	readonly control?: [boolean, Dispatch<SetStateAction<boolean>>];
-	readonly className?: string;
-}
-
-function Panel({ children, control, className }: PanelProperties) {
-	return (
-		<ModalOverlay
-			aria-hidden='true'
-			className={cn(
-				'fixed inset-0 h-screen w-screen z-50 bg-black/30',
-				'flex items-center justify-center dark:bg-black/70',
-				'entering:animate-in exiting:animate-out',
-				'entering:fade-in entering:duration-200 entering:ease-out',
-				'exiting:fade-out exiting:duration-100 exiting:ease-in',
-				className
-			)}
-			isOpen={control ? control[0] : undefined}
-			onOpenChange={control ? control[1] : undefined}
-		>
-			<Modal
-				className={cn(
-					'w-full max-w-md overflow-hidden rounded-xl p-4',
-					'bg-ui-50 dark:bg-ui-900 shadow-lg',
-					'entering:animate-in exiting:animate-out',
-					'dark:border dark:border-ui-700',
-					'entering:zoom-in-95 entering:ease-out entering:duration-200',
-					'exiting:zoom-out-95 exiting:ease-in exiting:duration-100'
+	if (Array.isArray(props.children)) {
+		const [button, panel] = props.children;
+		return (
+			<>
+				{cloneElement(button, triggerProps)}
+				{state.isOpen && (
+					<DModal state={state}>
+						{cloneElement(panel, {
+							...overlayProps,
+							close: () => state.close(),
+						})}
+					</DModal>
 				)}
-			>
-				<AriaDialog role='alertdialog' className='outline-none relative'>
-					{({ close }) => children(close)}
-				</AriaDialog>
-			</Modal>
-		</ModalOverlay>
-	)
-}
-
-type DialogProperties = {
-	readonly children: ReactNode;
-	readonly control?: [boolean, Dispatch<SetStateAction<boolean>>];
-}
-
-function Dialog({ children, control }: DialogProperties) {
-	if (control) {
-		return children
+			</>
+		);
 	}
 
 	return (
-		<DialogTrigger>
-			{children}
-		</DialogTrigger>
-	)
+		<DModal state={state}>
+			{cloneElement(props.children, {
+				...overlayProps,
+				close: () => state.close(),
+			})}
+		</DModal>
+	);
 }
 
-export default Object.assign(Dialog, { Button, Title, Text, Panel, Action })
+export interface DialogPanelProps extends AriaDialogProps {
+	children: React.ReactNode;
+	variant?: 'normal' | 'destructive' | 'unactionable';
+	onSubmit?: React.FormEventHandler<HTMLFormElement>;
+	method?: HTMLFormMethod;
+	isDisabled?: boolean;
+
+	// Anonymous (passed by parent)
+	close?: () => void;
+}
+
+function Panel(props: DialogPanelProps) {
+	const {
+		children,
+		onSubmit,
+		isDisabled,
+		close,
+		variant,
+		method = 'POST',
+	} = props;
+	const ref = useRef<HTMLFormElement | null>(null);
+	const { dialogProps } = useDialog(
+		{
+			...props,
+			role: 'alertdialog',
+		},
+		ref,
+	);
+
+	return (
+		<Form
+			{...dialogProps}
+			onSubmit={(event) => {
+				if (onSubmit) {
+					onSubmit(event);
+				}
+
+				close?.();
+			}}
+			method={method ?? 'POST'}
+			ref={ref}
+			className={cn(
+				'outline-none rounded-3xl w-full max-w-lg',
+				'bg-white dark:bg-headplane-900',
+			)}
+		>
+			<Card className="w-full max-w-lg">
+				{children}
+				<div className="mt-6 flex justify-end gap-4">
+					{variant === 'unactionable' ? (
+						<Button onPress={close}>Close</Button>
+					) : (
+						<>
+							<Button onPress={close}>Cancel</Button>
+							<Button
+								type="submit"
+								variant={variant === 'destructive' ? 'danger' : 'heavy'}
+								isDisabled={
+									isDisabled || !(ref.current?.checkValidity() ?? true)
+								}
+							>
+								Confirm
+							</Button>
+						</>
+					)}
+				</div>
+			</Card>
+		</Form>
+	);
+}
+
+interface DModalProps extends AriaModalOverlayProps {
+	children: React.ReactNode;
+	state: OverlayTriggerState;
+}
+
+function DModal(props: DModalProps) {
+	const { children, state } = props;
+	const ref = useRef<HTMLDivElement>(null);
+	const { modalProps, underlayProps } = useModalOverlay(props, state, ref);
+
+	if (!state.isOpen) {
+		return null;
+	}
+
+	return (
+		<Overlay>
+			<div
+				{...underlayProps}
+				aria-hidden="true"
+				className={cn(
+					'fixed inset-0 h-screen w-screen z-50',
+					'flex items-center justify-center',
+					'bg-headplane-900/15 dark:bg-headplane-900/30',
+					'entering:animate-in exiting:animate-out',
+					'entering:fade-in entering:duration-100 entering:ease-out',
+					'exiting:fade-out exiting:duration-50 exiting:ease-in',
+				)}
+			/>
+			<div
+				{...modalProps}
+				className={cn(
+					'fixed inset-0 h-screen w-screen z-50',
+					'flex items-center justify-center',
+				)}
+			>
+				{children}
+			</div>
+		</Overlay>
+	);
+}
+
+export default Object.assign(Dialog, {
+	Button,
+	IconButton,
+	Panel,
+	Title,
+	Text,
+});

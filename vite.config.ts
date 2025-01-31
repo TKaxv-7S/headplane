@@ -1,64 +1,32 @@
-import { vitePlugin as remix } from '@remix-run/dev'
-import { installGlobals } from '@remix-run/node'
-import { defineConfig } from 'vite'
-import babel from 'vite-plugin-babel'
-import tsconfigPaths from 'vite-tsconfig-paths'
+import { reactRouter } from '@react-router/dev/vite';
+import { defineConfig } from 'vite';
+import babel from 'vite-plugin-babel';
+import tsconfigPaths from 'vite-tsconfig-paths';
+import { execSync } from 'node:child_process';
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
 
-installGlobals()
-
-const prefix = process.env.__INTERNAL_PREFIX || '/admin'
+const prefix = process.env.__INTERNAL_PREFIX || '/admin';
 if (prefix.endsWith('/')) {
-	throw new Error('Prefix must not end with a slash')
+	throw new Error('Prefix must not end with a slash');
 }
 
-export default defineConfig(({ isSsrBuild }) => {
-	// If we have the Headplane entry we build it as a single
-	// server.mjs file that is built for production server bundle
-	// We know the remix invoked command is vite:build
-	if (!process.argv.includes('vite:build') && !process.argv.includes('vite:dev')) {
-		return {
-			build: {
-				minify: false,
-				target: 'esnext',
-				rollupOptions: {
-					input: './server.mjs',
-					output: {
-						entryFileNames: 'server.js',
-						dir: 'build/headplane',
-						banner: '#!/usr/bin/env node\n',
-					},
-					external: (id) => id.startsWith('node:'),
-				}
-			},
-			define: {
-				PREFIX: JSON.stringify(prefix),
-			},
-			resolve: {
-				alias: {
-					stream: 'node:stream',
-					crypto: 'node:crypto',
-				}
-			}
-		}
-	}
+// Load the version via git tags
+const version = execSync('git describe --tags --always').toString().trim();
+if (!version) {
+	throw new Error('Unable to execute git describe');
+}
 
-	return ({
-		base: `${prefix}/`,
-		build: isSsrBuild ? { target: 'ES2022' } : {},
-		plugins: [
-			remix({
-				basename: `${prefix}/`,
-			}),
-			tsconfigPaths(),
-			babel({
-				filter: /\.[jt]sx?$/,
-				babelConfig: {
-					presets: ['@babel/preset-typescript'],
-					plugins: [
-						['babel-plugin-react-compiler', {}],
-					],
-				},
-			}),
-		],
-	})
-})
+export default defineConfig({
+	base: `${prefix}/`,
+	plugins: [reactRouter(), tsconfigPaths()],
+	css: {
+		postcss: {
+			plugins: [tailwindcss, autoprefixer],
+		},
+	},
+	define: {
+		__VERSION__: JSON.stringify(version),
+		__PREFIX__: JSON.stringify(prefix),
+	},
+});
