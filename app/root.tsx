@@ -1,14 +1,18 @@
-import type { LoaderFunctionArgs, LinksFunction, MetaFunction } from 'react-router';
-import { Links, Meta, Outlet, Scripts, ScrollRestoration, useNavigation } from 'react-router';
-import { loadContext } from '~/utils/config/headplane';
-import '@fontsource-variable/inter'
-
-import { ProgressBar } from 'react-aria-components';
+import type { LinksFunction, MetaFunction } from 'react-router';
+import {
+	Links,
+	Meta,
+	Outlet,
+	Scripts,
+	ScrollRestoration,
+	useNavigation,
+} from 'react-router';
+import '@fontsource-variable/inter';
 import { ErrorPopup } from '~/components/Error';
-// TODO: Make this a default export
-import { Toaster } from '~/components/Toaster';
+import ProgressBar from '~/components/ProgressBar';
+import ToastProvider from '~/components/ToastProvider';
 import stylesheet from '~/tailwind.css?url';
-import { cn } from '~/utils/cn';
+import { useToastQueue } from '~/utils/toast';
 
 export const meta: MetaFunction = () => [
 	{ title: 'Headplane' },
@@ -23,6 +27,8 @@ export const links: LinksFunction = () => [
 ];
 
 export function Layout({ children }: { readonly children: React.ReactNode }) {
+	const toastQueue = useToastQueue();
+
 	return (
 		<html lang="en">
 			<head>
@@ -33,7 +39,7 @@ export function Layout({ children }: { readonly children: React.ReactNode }) {
 			</head>
 			<body className="overscroll-none dark:bg-headplane-900 dark:text-headplane-50">
 				{children}
-				<Toaster />
+				<ToastProvider queue={toastQueue} />
 				<ScrollRestoration />
 				<Scripts />
 			</body>
@@ -50,16 +56,8 @@ export default function App() {
 
 	return (
 		<>
-			<ProgressBar aria-label="Loading...">
-				<div
-					className={cn(
-						'fixed top-0 left-0 z-50 w-1/2 h-1',
-						'bg-blue-500 dark:bg-blue-400 opacity-0',
-						nav.state === 'loading' && 'animate-loading opacity-100',
-					)}
-				/>
-			</ProgressBar>
+			<ProgressBar isVisible={nav.state === 'loading'} />
 			<Outlet />
 		</>
-	)
+	);
 }

@@ -1,30 +1,30 @@
 /* eslint-disable unicorn/no-keyword-prefix */
-import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core';
+import { DndContext, DragOverlay, closestCorners } from '@dnd-kit/core';
 import {
 	restrictToParentElement,
 	restrictToVerticalAxis,
 } from '@dnd-kit/modifiers';
 import {
-	arrayMove,
 	SortableContext,
+	arrayMove,
 	useSortable,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { LockIcon, ThreeBarsIcon } from '@primer/octicons-react';
-import { type FetcherWithComponents, useFetcher } from 'react-router';
+import { GripVertical, Lock } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Button, Input } from 'react-aria-components';
+import { type FetcherWithComponents, useFetcher } from 'react-router';
+import Button from '~/components/Button';
+import Input from '~/components/Input';
 
 import Spinner from '~/components/Spinner';
 import TableList from '~/components/TableList';
-import { cn } from '~/utils/cn';
+import cn from '~/utils/cn';
 
 type Properties = {
 	readonly baseDomain?: string;
 	readonly searchDomains: string[];
-	// eslint-disable-next-line react/boolean-prop-naming
-	readonly disabled?: boolean;
+	readonly disabled?: boolean; // TODO: isDisabled
 };
 
 export default function Domains({
@@ -32,7 +32,6 @@ export default function Domains({
 	searchDomains,
 	disabled,
 }: Properties) {
-	// eslint-disable-next-line unicorn/no-null, @typescript-eslint/ban-types
 	const [activeId, setActiveId] = useState<number | string | null>(null);
 	const [localDomains, setLocalDomains] = useState(searchDomains);
 	const [newDomain, setNewDomain] = useState('');
@@ -45,7 +44,7 @@ export default function Domains({
 	return (
 		<div className="flex flex-col w-2/3">
 			<h1 className="text-2xl font-medium mb-4">Search Domains</h1>
-			<p className="text-gray-700 dark:text-gray-300 mb-2">
+			<p className="mb-4">
 				Set custom DNS search domains for your Tailnet. When using Magic DNS,
 				your tailnet domain is used as the first search domain.
 			</p>
@@ -56,7 +55,6 @@ export default function Domains({
 					setActiveId(event.active.id);
 				}}
 				onDragEnd={(event) => {
-					// eslint-disable-next-line unicorn/no-null
 					setActiveId(null);
 					const { active, over } = event;
 					if (!over) {
@@ -81,8 +79,15 @@ export default function Domains({
 				<TableList>
 					{baseDomain ? (
 						<TableList.Item key="magic-dns-sd">
-							<p className="font-mono text-sm">{baseDomain}</p>
-							<LockIcon className="h-4 w-4" />
+							<div
+								className={cn(
+									'flex items-center gap-4',
+									disabled ? 'flex-row-reverse justify-between w-full' : '',
+								)}
+							>
+								<Lock className="p-0.5" />
+								<p className="font-mono text-sm py-0.5">{baseDomain}</p>
+							</div>
 						</TableList.Item>
 					) : undefined}
 					<SortableContext
@@ -91,8 +96,7 @@ export default function Domains({
 					>
 						{localDomains.map((sd, index) => (
 							<Domain
-								// eslint-disable-next-line react/no-array-index-key
-								key={index}
+								key={sd}
 								domain={sd}
 								id={index + 1}
 								localDomains={localDomains}
@@ -117,26 +121,25 @@ export default function Domains({
 						<TableList.Item key="add-sd">
 							<Input
 								type="text"
-								className="font-mono text-sm bg-transparent w-full mr-2"
+								className={cn(
+									'border-none font-mono p-0',
+									'rounded-none focus:ring-0 w-full',
+								)}
 								placeholder="Search Domain"
-								value={newDomain}
-								onChange={(event) => {
-									setNewDomain(event.target.value);
-								}}
+								onChange={setNewDomain}
+								label="Search Domain"
+								labelHidden
 							/>
 							{fetcher.state === 'idle' ? (
 								<Button
 									className={cn(
-										'text-sm font-semibold',
-										'text-blue-600 dark:text-blue-400',
-										'hover:text-blue-700 dark:hover:text-blue-300',
-										newDomain.length === 0 && 'opacity-50 cursor-not-allowed',
+										'px-2 py-1 rounded-md',
+										'text-blue-500 dark:text-blue-400',
 									)}
 									isDisabled={newDomain.length === 0}
 									onPress={() => {
 										fetcher.submit(
 											{
-												// eslint-disable-next-line @typescript-eslint/naming-convention
 												'dns.search_domains': [...localDomains, newDomain],
 											},
 											{
@@ -166,8 +169,7 @@ type DomainProperties = {
 	readonly id: number;
 	readonly isDrag?: boolean;
 	readonly localDomains: string[];
-	// eslint-disable-next-line react/boolean-prop-naming
-	readonly disabled?: boolean;
+	readonly disabled?: boolean; // TODO: isDisabled
 	readonly fetcher: FetcherWithComponents<unknown>;
 };
 
@@ -188,17 +190,12 @@ function Domain({
 		isDragging,
 	} = useSortable({ id });
 
-	// TODO: Figure out why TableList.Item breaks dndkit
 	return (
-		<div
+		<TableList.Item
 			ref={setNodeRef}
 			className={cn(
-				'flex items-center justify-between px-3 py-2',
-				'border-b border-gray-200 last:border-b-0 dark:border-zinc-800',
-				isDragging ? 'text-gray-400' : '',
-				isDrag
-					? 'outline outline-1 outline-gray-500 bg-gray-200 dark:bg-zinc-800'
-					: '',
+				isDragging ? 'opacity-50' : '',
+				isDrag ? 'ring bg-white dark:bg-headplane-900' : '',
 			)}
 			style={{
 				transform: CSS.Transform.toString(transform),
@@ -207,21 +204,15 @@ function Domain({
 		>
 			<p className="font-mono text-sm flex items-center gap-4">
 				{disabled ? undefined : (
-					<ThreeBarsIcon
-						className="h-4 w-4 text-gray-400 focus:outline-none"
-						{...attributes}
-						{...listeners}
-					/>
+					<GripVertical {...attributes} {...listeners} className="p-0.5" />
 				)}
 				{domain}
 			</p>
 			{isDrag ? undefined : (
 				<Button
 					className={cn(
-						'text-sm',
-						'text-red-600 dark:text-red-400',
-						'hover:text-red-700 dark:hover:text-red-300',
-						disabled && 'opacity-50 cursor-not-allowed',
+						'px-2 py-1 rounded-md',
+						'text-red-500 dark:text-red-400',
 					)}
 					isDisabled={disabled}
 					onPress={() => {
@@ -241,6 +232,6 @@ function Domain({
 					Remove
 				</Button>
 			)}
-		</div>
+		</TableList.Item>
 	);
 }

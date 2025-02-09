@@ -1,12 +1,13 @@
 import { RepoForkedIcon } from '@primer/octicons-react';
 import { useState } from 'react';
 import { useSubmit } from 'react-router';
+import Chip from '~/components/Chip';
 
 import Dialog from '~/components/Dialog';
+import Input from '~/components/Input';
 import Switch from '~/components/Switch';
-import TextField from '~/components/TextField';
 import Tooltip from '~/components/Tooltip';
-import { cn } from '~/utils/cn';
+import cn from '~/utils/cn';
 
 interface Props {
 	nameservers: Record<string, string[]>;
@@ -68,16 +69,12 @@ export default function AddNameserver({ nameservers }: Props) {
 				}}
 			>
 				<Dialog.Title>Add nameserver</Dialog.Title>
-				<Dialog.Text className="font-semibold">Nameserver</Dialog.Text>
-				<Dialog.Text className="text-sm">
-					Use this IPv4 or IPv6 address to resolve names.
-				</Dialog.Text>
-				<TextField
-					label="DNS Server"
+				<Input
+					label="Nameserver"
+					description="Use this IPv4 or IPv6 address to resolve names."
 					placeholder="1.2.3.4"
 					name="ns"
-					state={[ns, setNs]}
-					className="mt-2 mb-8"
+					onChange={setNs}
 				/>
 				<div className="flex items-center justify-between">
 					<div className="block">
@@ -86,16 +83,11 @@ export default function AddNameserver({ nameservers }: Props) {
 								Restrict to domain
 							</Dialog.Text>
 							<Tooltip>
-								<Tooltip.Button
-									className={cn(
-										'text-xs rounded-md px-1.5 py-0.5',
-										'bg-ui-200 dark:bg-ui-800',
-										'text-ui-600 dark:text-ui-300',
-									)}
-								>
-									<RepoForkedIcon className="w-4 h-4 mr-0.5" />
-									Split DNS
-								</Tooltip.Button>
+								<Chip
+									text="Split DNS"
+									leftIcon={<RepoForkedIcon className="w-4 h-4 mr-0.5" />}
+									className={cn('inline-flex items-center')}
+								/>
 								<Tooltip.Body>
 									Only clients that support split DNS (Tailscale v1.8 or later
 									for most platforms) will use this nameserver. Older clients
@@ -118,12 +110,11 @@ export default function AddNameserver({ nameservers }: Props) {
 				{split ? (
 					<>
 						<Dialog.Text className="font-semibold mt-8">Domain</Dialog.Text>
-						<TextField
+						<Input
 							label="Domain"
 							placeholder="example.com"
 							name="domain"
-							state={[domain, setDomain]}
-							className="my-2"
+							onChange={setDomain}
 						/>
 						<Dialog.Text className="text-sm">
 							Only single-label or fully-qualified queries matching this suffix

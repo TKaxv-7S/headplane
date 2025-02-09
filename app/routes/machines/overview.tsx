@@ -1,5 +1,4 @@
 import { InfoIcon } from '@primer/octicons-react';
-import { Button, Tooltip, TooltipTrigger } from 'react-aria-components';
 import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
 import { useLoaderData } from 'react-router';
 
@@ -7,14 +6,14 @@ import Code from '~/components/Code';
 import { ErrorPopup } from '~/components/Error';
 import Link from '~/components/Link';
 import type { Machine, Route, User } from '~/types';
-import { cn } from '~/utils/cn';
+import cn from '~/utils/cn';
 import { loadContext } from '~/utils/config/headplane';
 import { loadConfig } from '~/utils/config/headscale';
 import { pull } from '~/utils/headscale';
 import { getSession } from '~/utils/sessions.server';
-import { useLiveData } from '~/utils/useLiveData';
 import { initAgentSocket, queryAgent } from '~/utils/ws-agent';
 
+import Tooltip from '~/components/Tooltip';
 import { menuAction } from './action';
 import MachineRow from './components/machine';
 import NewMachine from './dialogs/new';
@@ -56,15 +55,14 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Page() {
-	useLiveData({ interval: 3000 });
 	const data = useLoaderData<typeof loader>();
 
 	return (
 		<>
-			<div className="flex justify-between items-center mb-8">
+			<div className="flex justify-between items-center mb-6">
 				<div className="flex flex-col w-2/3">
-					<h1 className="text-2xl font-medium mb-4">Machines</h1>
-					<p className="text-gray-700 dark:text-gray-300">
+					<h1 className="text-2xl font-medium mb-2">Machines</h1>
+					<p>
 						Manage the devices connected to your Tailnet.{' '}
 						<Link
 							to="https://tailscale.com/kb/1372/manage-devices"
@@ -80,43 +78,35 @@ export default function Page() {
 				/>
 			</div>
 			<table className="table-auto w-full rounded-lg">
-				<thead className="text-gray-500 dark:text-gray-400">
-					<tr className="text-left uppercase text-xs font-bold px-0.5">
-						<th className="pb-2">Name</th>
+				<thead className="text-headplane-600 dark:text-headplane-300">
+					<tr className="text-left px-0.5">
+						<th className="uppercase text-xs font-bold pb-2">Name</th>
 						<th className="pb-2 w-1/4">
 							<div className="flex items-center gap-x-1">
-								Addresses
+								<p className="uppercase text-xs font-bold">Addresses</p>
 								{data.magic ? (
-									<TooltipTrigger delay={0}>
-										<Button>
-											<InfoIcon className="w-4 h-4" />
-										</Button>
-										<Tooltip
-											className={cn(
-												'text-sm max-w-xs p-2 rounded-lg mb-2',
-												'bg-white dark:bg-zinc-800',
-												'border border-gray-200 dark:border-zinc-700',
-											)}
-										>
+									<Tooltip>
+										<InfoIcon className="w-4 h-4" />
+										<Tooltip.Body className="font-normal">
 											Since MagicDNS is enabled, you can access devices based on
 											their name and also at{' '}
 											<Code>
 												[name].
 												{data.magic}
 											</Code>
-										</Tooltip>
-									</TooltipTrigger>
+										</Tooltip.Body>
+									</Tooltip>
 								) : undefined}
 							</div>
 						</th>
-						{/**<th className="pb-2">Version</th>**/}
-						<th className="pb-2">Last Seen</th>
+						{/**<th className="uppercase text-xs font-bold pb-2">Version</th>**/}
+						<th className="uppercase text-xs font-bold pb-2">Last Seen</th>
 					</tr>
 				</thead>
 				<tbody
 					className={cn(
-						'divide-y divide-zinc-200 dark:divide-zinc-700 align-top',
-						'border-t border-zinc-200 dark:border-zinc-700',
+						'divide-y divide-headplane-100 dark:divide-headplane-800 align-top',
+						'border-t border-headplane-100 dark:border-headplane-800',
 					)}
 				>
 					{data.nodes.map((machine) => (

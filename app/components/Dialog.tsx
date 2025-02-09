@@ -18,7 +18,7 @@ import Card from '~/components/Card';
 import IconButton, { IconButtonProps } from '~/components/IconButton';
 import Text from '~/components/Text';
 import Title from '~/components/Title';
-import { cn } from '~/utils/cn';
+import cn from '~/utils/cn';
 
 export interface DialogProps extends OverlayTriggerProps {
 	children:
@@ -111,7 +111,7 @@ function Panel(props: DialogPanelProps) {
 				'bg-white dark:bg-headplane-900',
 			)}
 		>
-			<Card className="w-full max-w-lg">
+			<Card className="w-full max-w-lg" variant="flat">
 				{children}
 				<div className="mt-6 flex justify-end gap-4">
 					{variant === 'unactionable' ? (
@@ -156,7 +156,7 @@ function DModal(props: DModalProps) {
 				{...underlayProps}
 				aria-hidden="true"
 				className={cn(
-					'fixed inset-0 h-screen w-screen z-50',
+					'fixed inset-0 h-screen w-screen z-20',
 					'flex items-center justify-center',
 					'bg-headplane-900/15 dark:bg-headplane-900/30',
 					'entering:animate-in exiting:animate-out',
@@ -167,7 +167,7 @@ function DModal(props: DModalProps) {
 			<div
 				{...modalProps}
 				className={cn(
-					'fixed inset-0 h-screen w-screen z-50',
+					'fixed inset-0 h-screen w-screen z-20',
 					'flex items-center justify-center',
 				)}
 			>

@@ -6,7 +6,6 @@ import Notice from '~/components/Notice';
 import { loadContext } from '~/utils/config/headplane';
 import { loadConfig, patchConfig } from '~/utils/config/headscale';
 import { getSession } from '~/utils/sessions.server';
-import { useLiveData } from '~/utils/useLiveData';
 
 import DNS from './components/dns';
 import Domains from './components/domains';
@@ -65,7 +64,6 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Page() {
-	useLiveData({ interval: 5000 });
 	const data = useLoaderData<typeof loader>();
 
 	const allNs: Record<string, string[]> = {};
@@ -96,7 +94,7 @@ export default function Page() {
 
 			<div className="flex flex-col w-2/3">
 				<h1 className="text-2xl font-medium mb-4">Magic DNS</h1>
-				<p className="text-gray-700 dark:text-gray-300 mb-4">
+				<p className="mb-4">
 					Automatically register domain names for each device on the tailnet.
 					Devices will be accessible at{' '}
 					<Code>

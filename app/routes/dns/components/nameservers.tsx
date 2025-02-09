@@ -1,12 +1,8 @@
 import { useSubmit } from 'react-router';
-import { useState } from 'react';
-import { Button } from 'react-aria-components';
-
+import Button from '~/components/Button';
 import Link from '~/components/Link';
-import Switch from '~/components/Switch';
 import TableList from '~/components/TableList';
-import { cn } from '~/utils/cn';
-
+import cn from '~/utils/cn';
 import AddNameserver from '../dialogs/nameserver';
 
 interface Props {
@@ -18,7 +14,7 @@ export default function Nameservers({ nameservers, isDisabled }: Props) {
 	return (
 		<div className="flex flex-col w-2/3">
 			<h1 className="text-2xl font-medium mb-4">Nameservers</h1>
-			<p className="text-gray-700 dark:text-gray-300">
+			<p>
 				Set the nameservers used by devices on the Tailnet to resolve DNS
 				queries.{' '}
 				<Link
@@ -59,7 +55,7 @@ function NameserverList({
 	name,
 }: ListProps) {
 	const submit = useSubmit();
-	const list = isGlobal ? nameservers['global'] : nameservers[name];
+	const list = isGlobal ? nameservers.global : nameservers[name];
 	if (list.length === 0) {
 		return null;
 	}
@@ -74,15 +70,12 @@ function NameserverList({
 			<TableList>
 				{list.length > 0
 					? list.map((ns, index) => (
-							// eslint-disable-next-line react/no-array-index-key
-							<TableList.Item key={index}>
+							<TableList.Item key={ns}>
 								<p className="font-mono text-sm">{ns}</p>
 								<Button
 									className={cn(
-										'text-sm',
-										'text-red-600 dark:text-red-400',
-										'hover:text-red-700 dark:hover:text-red-300',
-										isDisabled && 'opacity-50 cursor-not-allowed',
+										'px-2 py-1 rounded-md',
+										'text-red-500 dark:text-red-400',
 									)}
 									isDisabled={isDisabled}
 									onPress={() => {

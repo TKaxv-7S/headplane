@@ -4,11 +4,11 @@ import { Link } from 'react-router';
 import Chip from '~/components/Chip';
 import Menu from '~/components/Menu';
 import StatusCircle from '~/components/StatusCircle';
-import { toast } from '~/components/Toaster';
 import type { HostInfo, Machine, Route, User } from '~/types';
-import { cn } from '~/utils/cn';
+import cn from '~/utils/cn';
 import * as hinfo from '~/utils/host-info';
 
+import toast from '~/utils/toast';
 import MenuOptions from './menu';
 
 interface Props {
@@ -79,10 +79,18 @@ export default function MachineRow({
 		tags.unshift('Subnets');
 	}
 
+	const ipOptions = useMemo(() => {
+		if (magic) {
+			return [...machine.ipAddresses, `${machine.givenName}.${prefix}`];
+		}
+
+		return machine.ipAddresses;
+	}, [magic, machine.ipAddresses]);
+
 	return (
 		<tr
 			key={machine.id}
-			className="hover:bg-zinc-100 dark:hover:bg-zinc-800 group"
+			className="group hover:bg-headplane-50 dark:hover:bg-headplane-950"
 		>
 			<td className="pl-0.5 py-2">
 				<Link to={`/machines/${machine.id}`} className="group/link h-full">
@@ -95,9 +103,7 @@ export default function MachineRow({
 					>
 						{machine.givenName}
 					</p>
-					<p className="text-sm text-gray-500 dark:text-gray-300 font-mono">
-						{machine.name}
-					</p>
+					<p className="text-sm font-mono opacity-50">{machine.name}</p>
 					<div className="flex gap-1 mt-1">
 						{tags.map((tag) => (
 							<Chip key={tag} text={tag} />
@@ -108,46 +114,32 @@ export default function MachineRow({
 			<td className="py-2">
 				<div className="flex items-center gap-x-1">
 					{machine.ipAddresses[0]}
-					<Menu>
+					<Menu placement="bottom end">
 						<Menu.IconButton className="bg-transparent" label="IP Addresses">
 							<ChevronDownIcon className="w-4 h-4" />
 						</Menu.IconButton>
-						<Menu.Items>
-							{machine.ipAddresses.map((ip) => (
-								<Menu.ItemButton
-									key={ip}
-									type="button"
-									className={cn(
-										'flex items-center gap-x-1.5 text-sm',
-										'justify-between w-full',
-									)}
-									onPress={async () => {
-										await navigator.clipboard.writeText(ip);
-										toast('Copied IP address to clipboard');
-									}}
-								>
-									{ip}
-									<CopyIcon className="w-3 h-3" />
-								</Menu.ItemButton>
-							))}
-							{magic ? (
-								<Menu.ItemButton
-									type="button"
-									className={cn(
-										'flex items-center gap-x-1.5 text-sm',
-										'justify-between w-full break-keep',
-									)}
-									onPress={async () => {
-										const ip = `${machine.givenName}.${prefix}`;
-										await navigator.clipboard.writeText(ip);
-										toast('Copied hostname to clipboard');
-									}}
-								>
-									{machine.givenName}.{prefix}
-									<CopyIcon className="w-3 h-3" />
-								</Menu.ItemButton>
-							) : undefined}
-						</Menu.Items>
+						<Menu.Panel
+							onAction={async (key) => {
+								await navigator.clipboard.writeText(key.toString());
+								toast('Copied IP address to clipboard');
+							}}
+						>
+							<Menu.Section>
+								{ipOptions.map((ip) => (
+									<Menu.Item key={ip} textValue={ip}>
+										<div
+											className={cn(
+												'flex items-center justify-between',
+												'text-sm w-full gap-x-6',
+											)}
+										>
+											{ip}
+											<CopyIcon className="w-3 h-3" />
+										</div>
+									</Menu.Item>
+								))}
+							</Menu.Section>
+						</Menu.Panel>
 					</Menu>
 				</div>
 			</td>
@@ -158,12 +150,12 @@ export default function MachineRow({
 						<p className="leading-snug">
 							{hinfo.getTSVersion(stats)}
 						</p>
-						<p className="text-sm text-gray-500 dark:text-gray-300 max-w-48 truncate">
+						<p className="text-sm opacity-50 max-w-48 truncate">
 							{hinfo.getOSInfo(stats)}
 						</p>
 						</>
 					) : (
-						<p className="text-sm text-gray-500 dark:text-gray-300">
+						<p className="text-sm opacity-50">
 							Unknown
 						</p>
 					)}
@@ -173,7 +165,7 @@ export default function MachineRow({
 				<span
 					className={cn(
 						'flex items-center gap-x-1 text-sm',
-						'text-gray-500 dark:text-gray-400',
+						'text-headplane-600 dark:text-headplane-300',
 					)}
 				>
 					<StatusCircle

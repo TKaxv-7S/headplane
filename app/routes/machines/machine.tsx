@@ -1,30 +1,20 @@
-import {
-	CheckCircleIcon,
-	GearIcon,
-	InfoIcon,
-	PersonIcon,
-	SkipIcon,
-} from '@primer/octicons-react';
+import { CheckCircle, CircleSlash, Info, UserCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
 import { Link as RemixLink, useLoaderData } from 'react-router';
-
 import Attribute from '~/components/Attribute';
 import Button from '~/components/Button';
 import Card from '~/components/Card';
 import Chip from '~/components/Chip';
 import Link from '~/components/Link';
-import Menu from '~/components/Menu';
 import StatusCircle from '~/components/StatusCircle';
 import Tooltip from '~/components/Tooltip';
 import type { Machine, Route, User } from '~/types';
-import { cn } from '~/utils/cn';
+import cn from '~/utils/cn';
 import { loadContext } from '~/utils/config/headplane';
 import { loadConfig } from '~/utils/config/headscale';
 import { pull } from '~/utils/headscale';
 import { getSession } from '~/utils/sessions.server';
-import { useLiveData } from '~/utils/useLiveData';
-
 import { menuAction } from './action';
 import MenuOptions from './components/menu';
 import Routes from './dialogs/routes';
@@ -66,7 +56,6 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function Page() {
 	const { machine, magic, routes, users } = useLoaderData<typeof loader>();
 	const [showRouting, setShowRouting] = useState(false);
-	useLiveData({ interval: 1000 });
 
 	const expired =
 		machine.expiry === '0001-01-01 00:00:00' ||
@@ -128,63 +117,43 @@ export default function Page() {
 			</p>
 			<div
 				className={cn(
-					'flex justify-between items-center',
-					'border-b border-ui-100 dark:border-ui-800',
+					'flex justify-between items-center pb-2',
+					'border-b border-headplane-100 dark:border-headplane-800',
 				)}
 			>
-				<span className="flex items-baseline gap-x-4 text-sm mb-4">
+				<span className="flex items-baseline gap-x-4 text-sm">
 					<h1 className="text-2xl font-medium">{machine.givenName}</h1>
 					<StatusCircle isOnline={machine.online} className="w-4 h-4" />
 				</span>
 
 				<MenuOptions
+					isFullButton
 					machine={machine}
 					routes={routes}
 					users={users}
 					magic={magic}
-					buttonChild={
-						<Menu.Button
-							className={cn(
-								'flex items-center justify-center gap-x-2',
-								'bg-main-200 dark:bg-main-700/30',
-								'hover:bg-main-300 dark:hover:bg-main-600/30',
-								'text-ui-700 dark:text-ui-300 mb-2',
-								'w-fit text-sm rounded-lg px-3 py-2',
-							)}
-						>
-							<GearIcon className="w-5" />
-							Machine Settings
-						</Menu.Button>
-					}
 				/>
 			</div>
 			<div className="flex gap-1 mb-4">
-				<div className="border-r border-ui-100 dark:border-ui-800 p-2 pr-4">
-					<span className="text-sm text-ui-600 dark:text-ui-300 flex items-center gap-x-1">
+				<div className="border-r border-headplane-100 dark:border-headplane-800 p-2 pr-4">
+					<span className="text-sm text-headplane-600 dark:text-headplane-300 flex items-center gap-x-1">
 						Managed by
 						<Tooltip>
-							<Tooltip.Button>
-								<InfoIcon className="w-3.5 h-3.5" />
-							</Tooltip.Button>
+							<Info className="p-1" />
 							<Tooltip.Body>
 								By default, a machine’s permissions match its creator’s.
 							</Tooltip.Body>
 						</Tooltip>
 					</span>
 					<div className="flex items-center gap-x-2.5 mt-1">
-						<div
-							className={cn(
-								'rounded-full h-7 w-7 flex items-center justify-center',
-								'border border-ui-200 dark:border-ui-700',
-							)}
-						>
-							<PersonIcon className="w-4 h-4" />
-						</div>
+						<UserCircle />
 						{machine.user.name}
 					</div>
 				</div>
 				<div className="p-2 pl-4">
-					<p className="text-sm text-ui-600 dark:text-ui-300">Status</p>
+					<p className="text-sm text-headplane-600 dark:text-headplane-300">
+						Status
+					</p>
 					<div className="flex gap-1 mt-1 mb-8">
 						{tags.map((tag) => (
 							<Chip key={tag} text={tag} />
@@ -196,7 +165,8 @@ export default function Page() {
 			<Routes
 				machine={machine}
 				routes={routes}
-				state={[showRouting, setShowRouting]}
+				isOpen={showRouting}
+				setIsOpen={setShowRouting}
 			/>
 			<div className="flex items-center justify-between mb-4">
 				<p>
@@ -218,12 +188,10 @@ export default function Page() {
 				)}
 			>
 				<div>
-					<span className="text-ui-600 dark:text-ui-300 flex items-center gap-x-1">
+					<span className="text-headplane-600 dark:text-headplane-300 flex items-center gap-x-1">
 						Approved
 						<Tooltip>
-							<Tooltip.Button>
-								<InfoIcon className="w-3.5 h-3.5" />
-							</Tooltip.Button>
+							<Info className="w-3.5 h-3.5" />
 							<Tooltip.Body>
 								Traffic to these routes are being routed through this machine.
 							</Tooltip.Body>
@@ -231,7 +199,7 @@ export default function Page() {
 					</span>
 					<div className="mt-1">
 						{subnetApproved.length === 0 ? (
-							<span className="text-ui-400 dark:text-ui-300">—</span>
+							<span className="opacity-50">—</span>
 						) : (
 							<ul className="leading-normal">
 								{subnetApproved.map((route) => (
@@ -251,12 +219,10 @@ export default function Page() {
 					</Button>
 				</div>
 				<div>
-					<span className="text-ui-600 dark:text-ui-300 flex items-center gap-x-1">
+					<span className="text-headplane-600 dark:text-headplane-300 flex items-center gap-x-1">
 						Awaiting Approval
 						<Tooltip>
-							<Tooltip.Button>
-								<InfoIcon className="w-3.5 h-3.5" />
-							</Tooltip.Button>
+							<Info className="w-3.5 h-3.5" />
 							<Tooltip.Body>
 								This machine is advertising these routes, but they must be
 								approved before traffic will be routed to them.
@@ -265,7 +231,7 @@ export default function Page() {
 					</span>
 					<div className="mt-1">
 						{subnet.length === 0 ? (
-							<span className="text-ui-400 dark:text-ui-300">—</span>
+							<span className="opacity-50">—</span>
 						) : (
 							<ul className="leading-normal">
 								{subnet.map((route) => (
@@ -285,12 +251,10 @@ export default function Page() {
 					</Button>
 				</div>
 				<div>
-					<span className="text-ui-600 dark:text-ui-300 flex items-center gap-x-1">
+					<span className="text-headplane-600 dark:text-headplane-300 flex items-center gap-x-1">
 						Exit Node
 						<Tooltip>
-							<Tooltip.Button>
-								<InfoIcon className="w-3.5 h-3.5" />
-							</Tooltip.Button>
+							<Info className="w-3.5 h-3.5" />
 							<Tooltip.Body>
 								Whether this machine can act as an exit node for your tailnet.
 							</Tooltip.Body>
@@ -298,15 +262,15 @@ export default function Page() {
 					</span>
 					<div className="mt-1">
 						{exit.length === 0 ? (
-							<span className="text-ui-400 dark:text-ui-300">—</span>
+							<span className="opacity-50">—</span>
 						) : exitEnabled ? (
 							<span className="flex items-center gap-x-1">
-								<CheckCircleIcon className="w-3.5 h-3.5 text-green-700" />
+								<CheckCircle className="w-3.5 h-3.5 text-green-700" />
 								Allowed
 							</span>
 						) : (
 							<span className="flex items-center gap-x-1">
-								<SkipIcon className="w-3.5 h-3.5 text-red-700" />
+								<CircleSlash className="w-3.5 h-3.5 text-red-700" />
 								Awaiting Approval
 							</span>
 						)}

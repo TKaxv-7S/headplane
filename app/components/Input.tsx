@@ -1,14 +1,19 @@
 import { useRef } from 'react';
-import { type AriaTextFieldProps, useTextField } from 'react-aria';
+import { type AriaTextFieldProps, useId, useTextField } from 'react-aria';
 import cn from '~/utils/cn';
 
 export interface InputProps extends AriaTextFieldProps<HTMLInputElement> {
+	label: string;
+	labelHidden?: boolean;
 	isRequired?: boolean;
+	className?: string;
 }
 
 export default function Input(props: InputProps) {
-	const { label } = props;
+	const { label, labelHidden, className } = props;
 	const ref = useRef<HTMLInputElement | null>(null);
+	const id = useId(props.id);
+
 	const {
 		labelProps,
 		inputProps,
@@ -16,16 +21,24 @@ export default function Input(props: InputProps) {
 		errorMessageProps,
 		isInvalid,
 		validationErrors,
-	} = useTextField(props, ref);
+	} = useTextField(
+		{
+			...props,
+			label,
+			'aria-label': label,
+		},
+		ref,
+	);
 
 	return (
-		<div className="flex flex-col">
+		<div className="flex flex-col w-full" aria-label={label}>
 			<label
 				{...labelProps}
-				htmlFor={props.name}
+				htmlFor={id}
 				className={cn(
 					'text-xs font-medium px-3 mb-0.5',
 					'text-headplane-700 dark:text-headplane-100',
+					labelHidden && 'sr-only',
 				)}
 			>
 				{label}
@@ -39,6 +52,7 @@ export default function Input(props: InputProps) {
 					'focus:outline-none focus:ring',
 					'bg-white dark:bg-headplane-900',
 					'border border-headplane-100 dark:border-headplane-800',
+					className,
 				)}
 			/>
 			{props.description && (

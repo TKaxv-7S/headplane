@@ -1,19 +1,17 @@
+import { useMemo } from 'react';
 import {
 	type ActionFunctionArgs,
 	type LoaderFunctionArgs,
 	redirect,
 } from 'react-router';
 import { Form, useActionData, useLoaderData } from 'react-router';
-import { useMemo } from 'react';
-
 import Button from '~/components/Button';
 import Card from '~/components/Card';
 import Code from '~/components/Code';
-import TextField from '~/components/TextField';
+import Input from '~/components/Input';
 import type { Key } from '~/types';
 import { loadContext } from '~/utils/config/headplane';
 import { pull } from '~/utils/headscale';
-import { beginAuthFlow, getRedirectUri } from '~/utils/oidc';
 import { commitSession, getSession } from '~/utils/sessions.server';
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -92,7 +90,6 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function Page() {
 	const data = useLoaderData<typeof loader>();
 	const actionData = useActionData<typeof action>();
-	const showOr = useMemo(() => data.oidc && data.apiKey, [data]);
 
 	return (
 		<div className="flex min-h-screen items-center justify-center">
@@ -100,7 +97,7 @@ export default function Page() {
 				<Card.Title>Welcome to Headplane</Card.Title>
 				{data.apiKey ? (
 					<Form method="post">
-						<Card.Text className="mb-8 text-sm">
+						<Card.Text>
 							Enter an API key to authenticate with Headplane. You can generate
 							one by running <Code>headscale apikeys create</Code> in your
 							terminal.
@@ -109,29 +106,35 @@ export default function Page() {
 						{actionData?.error ? (
 							<p className="text-red-500 text-sm mb-2">{actionData.error}</p>
 						) : undefined}
-						<TextField
+						<Input
 							isRequired
+							labelHidden
 							label="API Key"
 							name="api-key"
 							placeholder="API Key"
 							type="password"
+							className="mt-4 mb-2"
 						/>
-						<Button className="w-full mt-2.5" variant="heavy" type="submit">
+						<Button className="w-full" variant="heavy" type="submit">
 							Sign In
 						</Button>
 					</Form>
 				) : undefined}
-				{showOr ? (
-					<div className="flex items-center gap-x-1.5 py-1">
-						<hr className="flex-1 border-ui-300 dark:border-ui-800" />
-						<span className="text-gray-500 text-sm">or</span>
-						<hr className="flex-1 border-ui-300 dark:border-ui-800" />
-					</div>
-				) : undefined}
 				{data.oidc ? (
 					<Form method="POST">
+						{!data.apiKey ? (
+							<Card.Text className="mb-6">
+								Sign in with your authentication provider to continue. Your
+								administrator has disabled API key login.
+							</Card.Text>
+						) : undefined}
+
 						<input type="hidden" name="oidc-start" value="true" />
-						<Button className="w-full" type="submit">
+						<Button
+							className="w-full mt-2"
+							variant={data.apiKey ? 'light' : 'heavy'}
+							type="submit"
+						>
 							Single Sign-On
 						</Button>
 					</Form>

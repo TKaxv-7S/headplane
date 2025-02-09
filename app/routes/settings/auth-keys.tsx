@@ -1,21 +1,17 @@
-import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
-import { useLoaderData } from 'react-router';
-import { useLiveData } from '~/utils/useLiveData';
-import { getSession } from '~/utils/sessions.server';
-import { Link as RemixLink } from 'react-router';
-import type { PreAuthKey, User } from '~/types';
-import { pull, post } from '~/utils/headscale';
-import { loadContext } from '~/utils/config/headplane';
 import { useState } from 'react';
-import { send } from '~/utils/res';
-
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
+import { useLoaderData } from 'react-router';
+import { Link as RemixLink } from 'react-router';
 import Link from '~/components/Link';
-import TableList from '~/components/TableList';
 import Select from '~/components/Select';
-import Switch from '~/components/Switch';
-
-import AddPreAuthKey from './dialogs/new';
+import TableList from '~/components/TableList';
+import type { PreAuthKey, User } from '~/types';
+import { loadContext } from '~/utils/config/headplane';
+import { post, pull } from '~/utils/headscale';
+import { send } from '~/utils/res';
+import { getSession } from '~/utils/sessions.server';
 import AuthKeyRow from './components/key';
+import AddPreAuthKey from './dialogs/new';
 
 export async function action({ request }: ActionFunctionArgs) {
 	const session = await getSession(request.headers.get('Cookie'));
@@ -123,32 +119,31 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function Page() {
 	const { keys, users, server } = useLoaderData<typeof loader>();
-	const [user, setUser] = useState('All');
-	const [status, setStatus] = useState('Active');
-	useLiveData({ interval: 3000 });
+	const [user, setUser] = useState('__headplane_all');
+	const [status, setStatus] = useState('active');
 
 	const filteredKeys = keys.filter((key) => {
-		if (user !== 'All' && key.user !== user) {
+		if (user !== '__headplane_all' && key.user !== user) {
 			return false;
 		}
 
-		if (status !== 'All') {
+		if (status !== 'all') {
 			const now = new Date();
 			const expiry = new Date(key.expiration);
 
-			if (status === 'Active') {
+			if (status === 'active') {
 				return !(expiry < now) && (!key.used || key.reusable);
 			}
 
-			if (status === 'Used/Expired') {
+			if (status === 'expired') {
 				return key.used || expiry < now;
 			}
 
-			if (status === 'Reusable') {
+			if (status === 'reusable') {
 				return key.reusable;
 			}
 
-			if (status === 'Ephemeral') {
+			if (status === 'ephemeral') {
 				return key.ephemeral;
 			}
 		}
@@ -156,6 +151,7 @@ export default function Page() {
 		return true;
 	});
 
+	// TODO: Fix the selects
 	return (
 		<div className="flex flex-col w-2/3">
 			<p className="mb-8 text-md">
@@ -164,8 +160,8 @@ export default function Page() {
 				</RemixLink>
 				<span className="mx-2">/</span> Pre-Auth Keys
 			</p>
-			<h1 className="text-2xl font-medium mb-4">Pre-Auth Keys</h1>
-			<p className="text-gray-700 dark:text-gray-300 mb-4">
+			<h1 className="text-2xl font-medium mb-2">Pre-Auth Keys</h1>
+			<p className="mb-4">
 				Headscale fully supports pre-authentication keys in order to easily add
 				devices to your Tailnet. To learn more about using pre-authentication
 				keys, visit the{' '}
@@ -177,40 +173,34 @@ export default function Page() {
 				</Link>
 			</p>
 			<AddPreAuthKey users={users} />
-			<div className="flex justify-between gap-4 mt-4">
-				<div className="w-full">
-					<p className="text-sm text-gray-500 dark:text-gray-300">
-						Filter by user
-					</p>
-					<Select
-						label="Filter by User"
-						placeholder="Select a user"
-						state={[user, setUser]}
-					>
-						<Select.Item id="All">All</Select.Item>
-						{users.map((user) => (
-							<Select.Item key={user.id} id={user.name}>
-								{user.name}
-							</Select.Item>
-						))}
-					</Select>
-				</div>
-				<div className="w-full">
-					<p className="text-sm text-gray-500 dark:text-gray-300">
-						Filter by status
-					</p>
-					<Select
-						label="Filter by status"
-						placeholder="Select a status"
-						state={[status, setStatus]}
-					>
-						<Select.Item id="All">All</Select.Item>
-						<Select.Item id="Active">Active</Select.Item>
-						<Select.Item id="Used/Expired">Used/Expired</Select.Item>
-						<Select.Item id="Reusable">Reusable</Select.Item>
-						<Select.Item id="Ephemeral">Ephemeral</Select.Item>
-					</Select>
-				</div>
+			<div className="flex items-center gap-4 mt-4">
+				<Select
+					label="Filter by User"
+					placeholder="Select a user"
+					className="w-full"
+					defaultSelectedKey="__headplane_all"
+					onSelectionChange={(value) => setUser(value?.toString() ?? '')}
+				>
+					{[
+						<Select.Item key="__headplane_all">All</Select.Item>,
+						...users.map((user) => (
+							<Select.Item key={user.name}>{user.name}</Select.Item>
+						)),
+					]}
+				</Select>
+				<Select
+					label="Filter by status"
+					placeholder="Select a status"
+					className="w-full"
+					defaultSelectedKey="active"
+					onSelectionChange={(value) => setStatus(value?.toString() ?? '')}
+				>
+					<Select.Item key="all">All</Select.Item>
+					<Select.Item key="active">Active</Select.Item>
+					<Select.Item key="expired">Used/Expired</Select.Item>
+					<Select.Item key="reusable">Reusable</Select.Item>
+					<Select.Item key="ephemeral">Ephemeral</Select.Item>
+				</Select>
 			</div>
 			<TableList className="mt-4">
 				{filteredKeys.length === 0 ? (
