@@ -281,6 +281,27 @@ in {
                   example = "https://provider.example.com/issuer-url";
                 };
 
+                authorization_endpoint = mkOption {
+                  type = types.nullOr types.str;
+                  default = null;
+                  description = "Optionally override authorization_endpoint";
+                  example = "https://provider.example.com/authorization_endpoint";
+                };
+
+                token_endpoint = mkOption {
+                  type = types.nullOr types.str;
+                  default = null;
+                  description = "Optionally override token_endpoint";
+                  example = "https://provider.example.com/token_endpoint";
+                };
+
+                userinfo_endpoint = mkOption {
+                  type = types.nullOr types.str;
+                  default = null;
+                  description = "Optionally override userinfo_endpoint";
+                  example = "https://provider.example.com/userinfo_endpoint";
+                };
+
                 client_id = mkOption {
                   type = types.str;
                   default = "";
