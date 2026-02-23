@@ -44,6 +44,13 @@ in {
                   description = "The port to listen on.";
                 };
 
+                base_url = mkOption {
+                  type = types.str;
+                  default = "http://localhost:3000";
+                  description = "The base URL for Headplane, not including the dashboard prefix (/admin) portion";
+                  example = "http://localhost:3000";
+                };
+
                 cookie_secret_path = mkOption {
                   type = types.nullOr types.path;
                   default = null;
@@ -92,6 +99,13 @@ in {
                     Data formats prior to 0.6.1 will automatically be migrated.
                   '';
                   example = "/var/lib/headplane";
+                };
+
+                info_secret = mkOption {
+                  type = types.nullOr types.str;
+                  default = null;
+                  description = "Secret is optional and allows access to certain debug endpoints";
+                  example = "config.sops.secrets.info_secret.path";
                 };
               };
             };
@@ -308,16 +322,6 @@ in {
                   example = "config.sops.secrets.headscale_api_key.path";
                 };
 
-                redirect_uri = mkOption {
-                  type = types.str;
-                  default = "";
-                  description = ''
-                    This should point to your publicly accessible URL
-                    for your Headplane instance with /admin/oidc/callback.
-                  '';
-                  example = "https://headscale.example.com/admin/oidc/callback";
-                };
-
                 user_storage_file = mkOption {
                   type = types.path;
                   default = "/var/lib/headplane/users.json";
@@ -325,6 +329,12 @@ in {
                     Path to a file containing the users and their permissions for Headplane.
                   '';
                   example = "/var/lib/headplane/users.json";
+                };
+
+                use_pkce = mkOption {
+                  type = types.bool;
+                  default = false;
+                  description = "Whether to use PKCE when authenticating users.";
                 };
               };
             };
