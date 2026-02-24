@@ -9,7 +9,8 @@ export interface Machine {
   ipAddresses: string[];
   name: string;
 
-  user: User;
+  // User can be null for tag-only nodes in Headscale 0.28+
+  user?: User;
   lastSeen: string;
   expiry: string | null;
 

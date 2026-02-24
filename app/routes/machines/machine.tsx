@@ -44,7 +44,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const lookup = await context.agents?.lookup([node.nodeKey]);
   const [enhancedNode] = mapNodes([node], lookup);
   const tags = [...node.tags].sort();
-  const supportsNodeOwnerChange = ! context.hsApi.clientHelpers.isAtleast("0.28.0-beta.1");
+  const supportsNodeOwnerChange = !context.hsApi.clientHelpers.isAtleast("0.28.0-beta.1");
 
   return {
     node: enhancedNode,
@@ -109,7 +109,9 @@ export default function Page({
           </span>
           <div className="mt-1 flex items-center gap-x-2.5">
             <UserCircle />
-            {node.user.name || node.user.displayName || node.user.email || node.user.id}
+            {node.user
+              ? node.user.name || node.user.displayName || node.user.email || node.user.id
+              : "Tag-owned"}
           </div>
         </div>
         <div className="p-2 pl-4">
@@ -241,7 +243,11 @@ export default function Page({
         <div className="flex flex-col gap-1">
           <Attribute
             name="Creator"
-            value={node.user.name || node.user.displayName || node.user.email || node.user.id}
+            value={
+              node.user
+                ? node.user.name || node.user.displayName || node.user.email || node.user.id
+                : "Tag-owned"
+            }
           />
           <Attribute name="Machine name" value={node.givenName} />
           <Attribute

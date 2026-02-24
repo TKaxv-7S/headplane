@@ -63,7 +63,9 @@ export default function MachineRow({
             {node.givenName}
           </p>
           <p className="text-sm opacity-50">
-            {node.user.name || node.user.displayName || node.user.email || node.user.id}
+            {node.user
+              ? node.user.name || node.user.displayName || node.user.email || node.user.id
+              : "Tag-owned"}
           </p>
           <div className="mt-1.5 flex flex-wrap gap-1">
             {mapTagsToComponents(node, uiTags)}
