@@ -6,6 +6,7 @@ import type { User } from "~/types";
 import Button from "~/components/Button";
 import Code from "~/components/Code";
 import Dialog from "~/components/Dialog";
+import Input from "~/components/Input";
 import Link from "~/components/Link";
 import NumberInput from "~/components/NumberInput";
 import Select from "~/components/Select";
@@ -23,7 +24,9 @@ export default function AddAuthKey({ users, url }: AddAuthKeyProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [reusable, setReusable] = useState(false);
   const [ephemeral, setEphemeral] = useState(false);
+  const [tagOnly, setTagOnly] = useState(false);
   const [userId, setUserId] = useState<Key | null>(users[0]?.id);
+  const [tags, setTags] = useState("");
 
   const createdKey = fetcher.data?.success ? fetcher.data.key : null;
 
@@ -37,10 +40,20 @@ export default function AddAuthKey({ users, url }: AddAuthKeyProps) {
     if (!isOpen) {
       setReusable(false);
       setEphemeral(false);
+      setTagOnly(false);
       setUserId(users[0]?.id);
+      setTags("");
       fetcher.data = undefined;
     }
   }, [isOpen]);
+
+  const parsedTags = tags
+    .split(",")
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0)
+    .map((t) => (t.startsWith("tag:") ? t : `tag:${t}`));
+
+  const canSubmit = tagOnly ? parsedTags.length > 0 : userId != null;
 
   return (
     <Dialog
@@ -84,30 +97,56 @@ export default function AddAuthKey({ users, url }: AddAuthKeyProps) {
             submittingRef.current = true;
             const form = new FormData(event.currentTarget as HTMLFormElement);
             form.set("action_id", "add_preauthkey");
-            form.set("user_id", userId?.toString() ?? "");
+            form.set("user_id", tagOnly ? "" : (userId?.toString() ?? ""));
             form.set("reusable", reusable ? "on" : "off");
             form.set("ephemeral", ephemeral ? "on" : "off");
+            form.set("acl_tags", parsedTags.join(","));
             fetcher.submit(form, { method: "POST" });
           }}
-          isDisabled={fetcher.state !== "idle"}
+          isDisabled={fetcher.state !== "idle" || !canSubmit}
         >
           <Dialog.Title>Generate auth key</Dialog.Title>
-          <Select
+
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <div>
+              <Dialog.Text className="font-semibold">Tag-only key</Dialog.Text>
+              <Dialog.Text className="text-sm">
+                Create a key owned by ACL tags instead of a user.
+              </Dialog.Text>
+            </div>
+            <Switch
+              defaultSelected={tagOnly}
+              label="Tag-only"
+              onChange={() => setTagOnly(!tagOnly)}
+            />
+          </div>
+
+          {!tagOnly && (
+            <Select
+              className="mb-2"
+              description="Machines will belong to this user when they authenticate."
+              isRequired
+              label="User"
+              onSelectionChange={(value) => setUserId(value)}
+              placeholder="Select a user"
+            >
+              {users.map((user) => (
+                <Select.Item key={user.id}>
+                  {user.name || user.displayName || user.email || user.id}
+                </Select.Item>
+              ))}
+            </Select>
+          )}
+
+          <Input
             className="mb-2"
-            description="This is the user machines will belong to when they authenticate."
-            isRequired
-            label="User"
-            onSelectionChange={(value) => {
-              setUserId(value);
-            }}
-            placeholder="Select a user"
-          >
-            {users.map((user) => (
-              <Select.Item key={user.id}>
-                {user.name || user.displayName || user.email || user.id}
-              </Select.Item>
-            ))}
-          </Select>
+            description="Comma-separated tags (e.g. server, prod). The tag: prefix is added automatically."
+            isRequired={tagOnly}
+            label="ACL Tags"
+            onChange={(value) => setTags(value)}
+            placeholder="server, prod"
+            value={tags}
+          />
           <NumberInput
             defaultValue={90}
             description="Set this key to expire after a certain number of days."
@@ -132,9 +171,7 @@ export default function AddAuthKey({ users, url }: AddAuthKeyProps) {
             <Switch
               defaultSelected={reusable}
               label="Reusable"
-              onChange={() => {
-                setReusable(!reusable);
-              }}
+              onChange={() => setReusable(!reusable)}
             />
           </div>
           <div className="mt-6 flex items-center justify-between gap-2">
@@ -154,9 +191,7 @@ export default function AddAuthKey({ users, url }: AddAuthKeyProps) {
             <Switch
               defaultSelected={ephemeral}
               label="Ephemeral"
-              onChange={() => {
-                setEphemeral(!ephemeral);
-              }}
+              onChange={() => setEphemeral(!ephemeral)}
             />
           </div>
         </Dialog.Panel>
