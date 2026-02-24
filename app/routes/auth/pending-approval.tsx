@@ -48,8 +48,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export default function PendingApproval({ loaderData }: Route.ComponentProps) {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="flex h-screen w-screen items-center justify-center">
+      <Card className="m-4 max-w-md sm:m-0">
         <div className="mb-4 flex items-center gap-3">
           <div className="rounded-full bg-amber-100 p-3 dark:bg-amber-900">
             <ClockIcon className="h-8 w-8 text-amber-600 dark:text-amber-400" />
@@ -112,6 +112,6 @@ export default function PendingApproval({ loaderData }: Route.ComponentProps) {
           </Form>
         </div>
       </Card>
-    </main>
+    </div>
   );
 }
