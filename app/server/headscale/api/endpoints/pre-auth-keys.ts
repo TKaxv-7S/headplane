@@ -4,6 +4,11 @@ import { defineApiEndpoints } from "../factory";
 
 export interface PreAuthKeyEndpoints {
   /**
+   * List all pre-auth keys. Requires Headscale 0.28+.
+   */
+  getAllPreAuthKeys(): Promise<PreAuthKey[]>;
+
+  /**
    * Retrieves all pre-authentication keys for a specific user.
    *
    * @param user The user to retrieve pre-authentication keys for.
@@ -33,6 +38,14 @@ export interface PreAuthKeyEndpoints {
 }
 
 export default defineApiEndpoints<PreAuthKeyEndpoints>((client, apiKey) => ({
+  getAllPreAuthKeys: async () => {
+    const { preAuthKeys } = await client.apiFetch<{
+      preAuthKeys: PreAuthKey[];
+    }>("GET", "v1/preauthkey", apiKey, {});
+
+    return preAuthKeys;
+  },
+
   getPreAuthKeys: async (user) => {
     const { preAuthKeys } = await client.apiFetch<{
       preAuthKeys: PreAuthKey[];

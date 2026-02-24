@@ -8,6 +8,8 @@ import Notice from "~/components/Notice";
 import Select from "~/components/Select";
 import TableList from "~/components/TableList";
 import { Capabilities } from "~/server/web/roles";
+import type { PreAuthKey } from "~/types";
+import type { User } from "~/types/User";
 import log from "~/utils/log";
 import { filterUsersWithValidIds, getUserDisplayName } from "~/utils/user";
 
@@ -22,40 +24,63 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const api = context.hsApi.getRuntimeClient(session.api_key);
 
   const users = await api.getUsers();
-  const preAuthKeys = await Promise.all(
-    filterUsersWithValidIds(users).map(async (user) => {
-      try {
-        const preAuthKeys = await api.getPreAuthKeys(user.id);
-        return {
-          success: true,
-          user,
-          preAuthKeys,
-        };
-      } catch (error) {
-        log.error("api", "GET /v1/preauthkey for %s: %o", user.name, error);
-        return {
-          success: false,
-          user,
-          error,
-          preAuthKeys: [],
-        };
+
+  let keys: { user: User | null; preAuthKeys: PreAuthKey[] }[];
+  let missing: { user: User; error: unknown }[] = [];
+
+  // Try fetching all keys at once (Headscale 0.28+), fall back to per-user
+  let allKeys: PreAuthKey[] | null = null;
+  try {
+    allKeys = await api.getAllPreAuthKeys();
+  } catch {
+    // older versions don't support this endpoint
+  }
+
+  if (allKeys !== null) {
+    const keysByUser = new Map<string | null, PreAuthKey[]>();
+    for (const key of allKeys) {
+      const userId = key.user?.id ?? null;
+      const existing = keysByUser.get(userId) ?? [];
+      existing.push(key);
+      keysByUser.set(userId, existing);
+    }
+
+    keys = [];
+    const tagOnly = keysByUser.get(null);
+    if (tagOnly?.length) {
+      keys.push({ user: null, preAuthKeys: tagOnly });
+    }
+    for (const user of users) {
+      const userKeys = keysByUser.get(user.id);
+      if (userKeys?.length) {
+        keys.push({ user, preAuthKeys: userKeys });
       }
-    }),
-  );
+    }
+  } else {
+    type FetchResult =
+      | { success: true; user: User; preAuthKeys: PreAuthKey[] }
+      | { success: false; user: User; error: unknown; preAuthKeys: [] };
 
-  const keys = preAuthKeys
-    .filter(({ success }) => success)
-    .map(({ user, preAuthKeys }) => ({
-      user,
-      preAuthKeys,
-    }));
+    const results: FetchResult[] = await Promise.all(
+      filterUsersWithValidIds(users).map(async (user) => {
+        try {
+          const preAuthKeys = await api.getPreAuthKeys(user.id);
+          return { success: true as const, user, preAuthKeys };
+        } catch (error) {
+          log.error("api", "GET /v1/preauthkey for %s: %o", user.name, error);
+          return { success: false as const, user, error, preAuthKeys: [] as const };
+        }
+      }),
+    );
 
-  const missing = preAuthKeys
-    .filter(({ success }) => !success)
-    .map(({ user, error }) => ({
-      user,
-      error,
-    }));
+    keys = results
+      .filter(({ success }) => success)
+      .map(({ user, preAuthKeys }) => ({ user, preAuthKeys }));
+
+    missing = results
+      .filter((r): r is Extract<FetchResult, { success: false }> => !r.success)
+      .map(({ user, error }) => ({ user, error }));
+  }
 
   return {
     keys,
@@ -84,7 +109,11 @@ export default function Page({
           return true;
         }
 
-        return user.id === selectedUser;
+        if (selectedUser === "__headplane_tag_only") {
+          return user === null;
+        }
+
+        return user?.id === selectedUser;
       })
       .flatMap(({ preAuthKeys }) => preAuthKeys)
       .filter((key) => {
@@ -176,9 +205,14 @@ export default function Page({
         >
           {[
             <Select.Item key="__headplane_all">All</Select.Item>,
-            ...keys.map(({ user }) => (
-              <Select.Item key={user.id}>{getUserDisplayName(user)}</Select.Item>
-            )),
+            ...keys
+              .filter((k): k is { user: User; preAuthKeys: PreAuthKey[] } => k.user !== null)
+              .map(({ user }) => (
+                <Select.Item key={user.id}>{getUserDisplayName(user)}</Select.Item>
+              )),
+            ...(keys.some(({ user }) => user === null)
+              ? [<Select.Item key="__headplane_tag_only">Tag Only</Select.Item>]
+              : []),
           ]}
         </Select>
         <Select
@@ -209,9 +243,18 @@ export default function Page({
           </TableList.Item>
         ) : (
           filteredKeys.map((key) => {
+            // Tag-only keys have no user
+            if (!key.user) {
+              return (
+                <TableList.Item key={key.id}>
+                  <AuthKeyRow authKey={key} user={null} />
+                </TableList.Item>
+              );
+            }
+
             // TODO: Why is Headscale using email as the user ID here?
             // https://github.com/juanfont/headscale/issues/2520
-            const user = users.find((user) => user.id === key.user.id);
+            const user = users.find((user) => user.id === key.user?.id);
             if (!user) {
               return null;
             }
