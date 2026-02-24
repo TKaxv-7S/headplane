@@ -23,7 +23,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const users = await api.getUsers();
   const preAuthKeys = await Promise.all(
     users
-      .filter((user) => user.name?.length > 0) // Filter out any invalid users
+      .filter((user) => user.id?.length > 0) // Filter out users without valid IDs
       .map(async (user) => {
         try {
           const preAuthKeys = await api.getPreAuthKeys(user.id);
@@ -147,7 +147,7 @@ export default function Page({
           An error occurred while fetching the authentication keys for the following users:{" "}
           {missing.map(({ user }, index) => (
             <>
-              <Code key={user.name}>{user.name}</Code>
+              <Code key={user.id}>{user.name || user.displayName || user.email || user.id}</Code>
               {index < missing.length - 1 ? ", " : ". "}
             </>
           ))}
