@@ -9,6 +9,7 @@ import Select from "~/components/Select";
 import TableList from "~/components/TableList";
 import { Capabilities } from "~/server/web/roles";
 import log from "~/utils/log";
+import { filterUsersWithValidIds, getUserDisplayName } from "~/utils/user";
 
 import type { Route } from "./+types/overview";
 
@@ -22,26 +23,24 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
   const users = await api.getUsers();
   const preAuthKeys = await Promise.all(
-    users
-      .filter((user) => user.id?.length > 0) // Filter out users without valid IDs
-      .map(async (user) => {
-        try {
-          const preAuthKeys = await api.getPreAuthKeys(user.id);
-          return {
-            success: true,
-            user,
-            preAuthKeys,
-          };
-        } catch (error) {
-          log.error("api", "GET /v1/preauthkey for %s: %o", user.name, error);
-          return {
-            success: false,
-            user,
-            error,
-            preAuthKeys: [],
-          };
-        }
-      }),
+    filterUsersWithValidIds(users).map(async (user) => {
+      try {
+        const preAuthKeys = await api.getPreAuthKeys(user.id);
+        return {
+          success: true,
+          user,
+          preAuthKeys,
+        };
+      } catch (error) {
+        log.error("api", "GET /v1/preauthkey for %s: %o", user.name, error);
+        return {
+          success: false,
+          user,
+          error,
+          preAuthKeys: [],
+        };
+      }
+    }),
   );
 
   const keys = preAuthKeys
@@ -147,7 +146,7 @@ export default function Page({
           An error occurred while fetching the authentication keys for the following users:{" "}
           {missing.map(({ user }, index) => (
             <>
-              <Code key={user.id}>{user.name || user.displayName || user.email || user.id}</Code>
+              <Code key={user.id}>{getUserDisplayName(user)}</Code>
               {index < missing.length - 1 ? ", " : ". "}
             </>
           ))}
@@ -178,9 +177,7 @@ export default function Page({
           {[
             <Select.Item key="__headplane_all">All</Select.Item>,
             ...keys.map(({ user }) => (
-              <Select.Item key={user.id}>
-                {user.name || user.displayName || user.email || user.id}
-              </Select.Item>
+              <Select.Item key={user.id}>{getUserDisplayName(user)}</Select.Item>
             )),
           ]}
         </Select>
