@@ -1,4 +1,4 @@
-# 0.6.2 (Next)
+# 0.6.2 (February 26, 2026)
 
 - **Added support for Headscale 0.28.0** including all API and data model changes.
 - Added search and sortable columns to the machines list page (closes [#351](https://github.com/tale/headplane/issues/351)).
@@ -40,6 +40,7 @@
 - Fixed truncated pre-auth key display with longer Headscale 0.28 bcrypt tokens (closes [#435](https://github.com/tale/headplane/issues/435)).
 - Fixed Nix systemd service to use user-specified package (via [#454](https://github.com/tale/headplane/pull/454)).
 - Version displayed in the UI is now derived from git tags and build args instead of `package.json`, fixing incorrect versions shown on beta and nightly builds.
+- Improved the no-access user page on the UI (via [#469](https://github.com/tale/headplane/pull/469)).
 
 ---
 
