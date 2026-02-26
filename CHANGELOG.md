@@ -39,6 +39,7 @@
 - Fixed pre-auth keys not showing for OIDC users without a username (via [#470](https://github.com/tale/headplane/pull/470)).
 - Fixed truncated pre-auth key display with longer Headscale 0.28 bcrypt tokens (closes [#435](https://github.com/tale/headplane/issues/435)).
 - Fixed Nix systemd service to use user-specified package (via [#454](https://github.com/tale/headplane/pull/454)).
+- Version displayed in the UI is now derived from git tags and build args instead of `package.json`, fixing incorrect versions shown on beta and nightly builds.
 
 ---
 

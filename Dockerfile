@@ -37,7 +37,8 @@ COPY --from=go-base /bin/wasm_exec.js /run/app/wasm_exec.js
 RUN ./build.sh --app --app-install-only
 
 COPY . .
-RUN ./build.sh --app
+ARG HEADPLANE_VERSION
+RUN HEADPLANE_VERSION=$HEADPLANE_VERSION ./build.sh --app
 
 FROM gcr.io/distroless/nodejs22-debian12:latest AS final
 COPY --from=js-base /run/build /app/build
