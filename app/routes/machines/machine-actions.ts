@@ -60,7 +60,9 @@ export async function machineAction({ request, context }: Route.ActionArgs) {
     });
   }
 
-  if (node.user.providerId?.split("/").pop() !== session.user.subject && !check) {
+  // Tag-only nodes (Headscale 0.28+) have no user, so we rely on role-based permissions
+  const nodeOwnerId = node.user?.providerId?.split("/").pop();
+  if (nodeOwnerId !== session.user.subject && !check) {
     throw data("You do not have permission to act on this machine", {
       status: 403,
     });
