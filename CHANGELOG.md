@@ -1,5 +1,6 @@
 # 0.6.2 (Next)
 
+- **Added support for Headscale 0.28.0** including all API and data model changes.
 - Added search and sortable columns to the machines list page (closes [#351](https://github.com/tale/headplane/issues/351)).
 - Added support for Headscale 0.27.0 and 0.27.1
 - Bundle all `node_modules` aside from native ones to reduce bundle and container size (closes [#331](https://github.com/tale/headplane/issues/331)).
@@ -15,6 +16,7 @@
   - Deprecated `oidc.redirect_uri` and automated callback URL detection in favor of setting `server.base_url` correctly.
   - Explicitly added `oidc.use_pkce` to correctly determine PKCE configuration.
   - `oidc.token_endpoint_auth_method` is now optional and will attempt to be auto-detected, defaulting to `client_secret_basic` if unavailable (closes [#410](https://github.com/tale/headplane/issues/410)).
+  - Added `oidc.enabled` config option to explicitly control OIDC availability (via [#463](https://github.com/tale/headplane/pull/463)).
 - Removed several unnecessarily verbose or spammy log messages.
 - Updated the minimum Docker API used to support the latest Docker versions (via [#370](https://github.com/tale/headplane/pull/370)).
 - Enhanced the node tag dialog to show a dropdown of assignable tags (via [#362](https://github.com/tale/headplane/pull/362)).
@@ -28,8 +30,15 @@
 - Added a Docker healthcheck to the container (closes [#411](https://github.com/tale/headplane/issues/411)).
 - Strengthened the validation for the `/proc` integration to correctly discover the Headscale PID.
 - Added lazy retry logic for OIDC providers if they initially fail to respond (closes [#423](https://github.com/tale/headplane/issues/423)).
-- Fixed API key login on Headcale 0.28.0-beta.1+ (closes [#429](https://github.com/tale/headplane/issues/429)).
+- Fixed API key login on Headscale 0.28.0-beta.1+ (closes [#429](https://github.com/tale/headplane/issues/429)).
 - Fixed an issue that prevented the pre-auth-key UI from being usable on Headscale 0.28 and later.
+- Added support for creating tag-only pre-auth keys on Headscale 0.28+ (via [#465](https://github.com/tale/headplane/pull/465)).
+- Pre-auth keys are now listed without a user filter on Headscale 0.28+, with a fallback to per-user fetching on older versions (via [#466](https://github.com/tale/headplane/pull/466)).
+- Fixed handling of tag-only nodes that have no user on Headscale 0.28+ (via [#467](https://github.com/tale/headplane/pull/467)).
+- Adapted to the removal of Node Ownership Change in Headscale 0.28 (via [#436](https://github.com/tale/headplane/pull/436)).
+- Fixed pre-auth keys not showing for OIDC users without a username (via [#470](https://github.com/tale/headplane/pull/470)).
+- Fixed truncated pre-auth key display with longer Headscale 0.28 bcrypt tokens (closes [#435](https://github.com/tale/headplane/issues/435)).
+- Fixed Nix systemd service to use user-specified package (via [#454](https://github.com/tale/headplane/pull/454)).
 
 ---
 
