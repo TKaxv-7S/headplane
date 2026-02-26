@@ -76,13 +76,14 @@ const appLoadContext = {
   hsApi,
   agents,
   integration: await loadIntegration(config.integration),
-  oidcConnector: config.oidc
-    ? createLazyOidcConnector(
-        config.server.base_url,
-        config.oidc,
-        hsApi.getRuntimeClient(config.oidc.headscale_api_key),
-      )
-    : undefined,
+  oidcConnector:
+    config.oidc && config.oidc.enabled !== false
+      ? createLazyOidcConnector(
+          config.server.base_url,
+          config.oidc,
+          hsApi.getRuntimeClient(config.oidc.headscale_api_key),
+        )
+      : undefined,
   db,
 };
 
