@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { ClockIcon, LogOut, UserCheck } from "lucide-react";
+import { ClockIcon, LogOut, RefreshCw, UserCheck } from "lucide-react";
 import { Form, redirect } from "react-router";
 
 import Button from "~/components/Button";
@@ -75,7 +75,7 @@ export default function PendingApproval({ loaderData }: Route.ComponentProps) {
           <ul className="text-headplane-600 dark:text-headplane-400 list-inside list-disc space-y-1 text-sm">
             <li>An administrator will review your account</li>
             <li>Once approved, you will receive the appropriate access level</li>
-            <li>Refresh this page after receiving approval</li>
+            <li>This page will automatically redirect you once approved</li>
           </ul>
         </div>
 
@@ -96,21 +96,23 @@ export default function PendingApproval({ loaderData }: Route.ComponentProps) {
         </Button>
         <p className="mt-1 text-center text-xs opacity-50">Click to copy the command</p>
 
-        <div className="mt-6 flex gap-2">
-          <Button className="flex-1" variant="light" onPress={() => window.location.reload()}>
-            Check Status
-          </Button>
-          <Form action="/logout" method="post" className="flex-1">
-            <Button
-              type="submit"
-              variant="heavy"
-              className="flex w-full items-center justify-center gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
-          </Form>
+        <div className="bg-headplane-100 dark:bg-headplane-800 mb-4 flex items-center justify-center gap-2 rounded-lg p-3 text-sm">
+          <RefreshCw className="text-headplane-500 h-4 w-4 animate-spin" />
+          <span className="text-headplane-600 dark:text-headplane-400">
+            Checking for approval automatically...
+          </span>
         </div>
+
+        <Form action="/logout" method="post">
+          <Button
+            type="submit"
+            variant="heavy"
+            className="flex w-full items-center justify-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign Out
+          </Button>
+        </Form>
       </Card>
     </div>
   );
