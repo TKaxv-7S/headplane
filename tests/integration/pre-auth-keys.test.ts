@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { getRuntimeClient, HS_VERSIONS } from "./setup/env";
+import { getBootstrapClient, getRuntimeClient, HS_VERSIONS } from "./setup/env";
 
 describe.sequential.for(HS_VERSIONS)("Headscale %s: Pre-auth Keys", (version) => {
   test("pre-auth keys can be created", async () => {
@@ -32,6 +32,23 @@ describe.sequential.for(HS_VERSIONS)("Headscale %s: Pre-auth Keys", (version) =>
     expect(preAuthKey).toBeDefined();
     expect(preAuthKey.user.id).toBe(preAuthKeyUser.id);
     expect(preAuthKey.ephemeral).toBe(true);
+    expect(preAuthKey.reusable).toBe(true);
+    expect(preAuthKey.aclTags.sort()).toEqual(aclTags.sort());
+  });
+
+  test("tag-only pre-auth keys (0.28+)", async (context) => {
+    const bootstrap = await getBootstrapClient(version);
+    if (!bootstrap.clientHelpers.isAtleast("0.28.0")) {
+      context.skip();
+    }
+
+    const client = await getRuntimeClient(version);
+    const aclTags = ["tag:server", "tag:prod"];
+    const preAuthKey = await client.createPreAuthKey(null, false, true, null, aclTags);
+
+    expect(preAuthKey).toBeDefined();
+    expect(preAuthKey.user).toBeNull();
+    expect(preAuthKey.ephemeral).toBe(false);
     expect(preAuthKey.reusable).toBe(true);
     expect(preAuthKey.aclTags.sort()).toEqual(aclTags.sort());
   });
