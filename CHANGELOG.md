@@ -1,4 +1,4 @@
-# Next
+# 0.7.0
 
 - Switched to structured JSON logging (closes [#279](https://github.com/tale/headplane/issues/279)).
 - Added suggestions to pick existing tags to the machine tag dialog (closes [#560](https://github.com/tale/headplane/issues/560)).
