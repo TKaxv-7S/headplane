@@ -13,6 +13,7 @@
 - Fixed the DNS page crashing when Headscale has no Split DNS nameservers configured (closes [#570](https://github.com/tale/headplane/issues/570)).
 - User lists now show Headscale display names while preserving usernames as secondary text (closes [#571](https://github.com/tale/headplane/issues/571)).
 - Fixed the Register Machine Key dialog so it accepts registration URLs and full `hskey-authreq-...` registration keys (closes [#579](https://github.com/tale/headplane/issues/579)).
+- Fixed assigning ACL tags to tag-only (no-user) nodes from the UI. The "Add" and "Remove" tag buttons in the tag dialog lacked `type="button"`, so clicking them submitted the form before the local state update was applied and Headscale received the unchanged tag list. Tag modifications now reach Headscale as intended (closes [#574](https://github.com/tale/headplane/issues/574)).
 
 ---
 

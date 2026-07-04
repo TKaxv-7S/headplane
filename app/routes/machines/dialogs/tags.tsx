@@ -102,6 +102,7 @@ export default function Tags({ machine, isOpen, setIsOpen, existingTags }: TagsP
                   onClick={() => {
                     setTags(tags.filter((tag) => tag !== item));
                   }}
+                  type="button"
                 >
                   <X className="p-1" />
                 </Button>
@@ -128,6 +129,7 @@ export default function Tags({ machine, isOpen, setIsOpen, existingTags }: TagsP
               setTags([...tags, tag]);
               setTag("tag:");
             }}
+            type="button"
           >
             <Plus className="p-1" size={30} />
           </Button>
