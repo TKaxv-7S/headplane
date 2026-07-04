@@ -12,6 +12,7 @@
 - Added automatic role assignment for new OIDC users via `oidc.default_role` and IdP-provided role claims via `oidc.role_claim` (closes [#352](https://github.com/tale/headplane/issues/352)).
 - Fixed the DNS page crashing when Headscale has no Split DNS nameservers configured (closes [#570](https://github.com/tale/headplane/issues/570)).
 - User lists now show Headscale display names while preserving usernames as secondary text (closes [#571](https://github.com/tale/headplane/issues/571)).
+- Fixed the Register Machine Key dialog so it accepts registration URLs and full `hskey-authreq-...` registration keys (closes [#579](https://github.com/tale/headplane/issues/579)).
 
 ---
 

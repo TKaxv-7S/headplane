@@ -44,6 +44,7 @@ export async function getNode(version: Version) {
   const { tailscaleNode } = await ensureVersion(version);
   return {
     authCode: tailscaleNode.authCode,
+    registerUrl: tailscaleNode.registerUrl,
     nodeName: tailscaleNode.nodeName,
   };
 }

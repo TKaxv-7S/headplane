@@ -4,6 +4,7 @@ import { authContext, headscaleLiveStoreContext, requestApiContext } from "~/ser
 import { isDataWithApiError } from "~/server/headscale/api/error-client";
 import { nodesResource } from "~/server/headscale/live-store";
 import { Capabilities } from "~/server/web/roles";
+import { normalizeRegistrationKey } from "~/utils/register-key";
 
 import type { Route } from "./+types/machine";
 
@@ -31,9 +32,16 @@ export async function machineAction({ request, context }: Route.ActionArgs) {
       });
     }
 
-    const registrationKey = formData.get("register_key")?.toString();
-    if (!registrationKey) {
+    const registrationKeyInput = formData.get("register_key")?.toString();
+    if (!registrationKeyInput) {
       throw data("Missing `register_key` in the form data.", {
+        status: 400,
+      });
+    }
+
+    const registrationKey = normalizeRegistrationKey(registrationKeyInput);
+    if (!registrationKey) {
+      throw data("Invalid `register_key` in the form data.", {
         status: 400,
       });
     }

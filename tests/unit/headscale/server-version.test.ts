@@ -82,6 +82,7 @@ describe("capabilitiesFor", () => {
       preAuthKeysHaveStableIds: true,
       nodeTagsAreFlat: true,
       nodeOwnerIsImmutable: true,
+      registerKeyIncludesAuthReqPrefix: false,
     });
   });
 
@@ -91,10 +92,16 @@ describe("capabilitiesFor", () => {
     );
   });
 
+  test("0.29.0 enables the prefixed AuthID register key", () => {
+    const caps = capabilitiesFor(parseServerVersion("0.29.0"));
+    expect(caps.registerKeyIncludesAuthReqPrefix).toBe(true);
+  });
+
   test("0.27.1 lacks every 0.28-gated capability", () => {
     const caps = capabilitiesFor(parseServerVersion("0.27.1"));
     expect(caps.preAuthKeysHaveStableIds).toBe(false);
     expect(caps.nodeTagsAreFlat).toBe(false);
     expect(caps.nodeOwnerIsImmutable).toBe(false);
+    expect(caps.registerKeyIncludesAuthReqPrefix).toBe(false);
   });
 });
