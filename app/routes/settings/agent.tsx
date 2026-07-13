@@ -27,6 +27,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     syncedAt: sync.syncedAt?.toISOString() ?? null,
     nodeCount: sync.nodeCount,
     error: sync.error,
+    authUrl: sync.authUrl,
   };
 }
 
@@ -42,7 +43,11 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   await agents.value.triggerSync();
   const sync = agents.value.lastSync();
-  return { success: !sync.error, error: sync.error };
+  return {
+    success: !sync.error,
+    error: sync.error,
+    authUrl: sync.authUrl,
+  };
 }
 
 export default function Page({ loaderData }: Route.ComponentProps) {
@@ -63,6 +68,7 @@ export default function Page({ loaderData }: Route.ComponentProps) {
     );
   }
 
+  const isPending = !loaderData.syncedAt && loaderData.authUrl;
   const hasError = Boolean(loaderData.error);
 
   return (
@@ -76,8 +82,10 @@ export default function Page({ loaderData }: Route.ComponentProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <StatusCircle isOnline={!hasError} className="h-5 w-5" />
-        <span className="text-lg font-medium">{hasError ? "Error" : "Healthy"}</span>
+        <StatusCircle isOnline={!hasError && !isPending} className="h-5 w-5" />
+        <span className="text-lg font-medium">
+          {hasError ? "Error" : isPending ? "Waiting for approval" : "Healthy"}
+        </span>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -94,6 +102,17 @@ export default function Page({ loaderData }: Route.ComponentProps) {
           {loaderData.nodeCount}
         </Text>
       </div>
+
+      {isPending ? (
+        <Notice variant="warning" title="Agent Needs Approval">
+          The agent is waiting for its Tailnet registration to be approved. Headplane will attempt
+          to auto-approve it, but if that fails, you can complete approval by visiting{" "}
+          <Link external styled to={loaderData.authUrl!}>
+            this link
+          </Link>
+          .
+        </Notice>
+      ) : undefined}
 
       {loaderData.error ? (
         <Notice variant="error" title="Sync Error">

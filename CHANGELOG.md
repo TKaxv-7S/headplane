@@ -1,3 +1,7 @@
+# Next
+
+- Fixed the Headplane agent falling back to an interactive Tailscale login. The agent now starts with a pre-auth-key, preserves its existing state across restarts, and auto-approves itself when Headscale requires manual approval (closes [#582](https://github.com/tale/headplane/issues/582)).
+
 # 0.7.0
 
 - Switched to structured JSON logging (closes [#279](https://github.com/tale/headplane/issues/279)).
